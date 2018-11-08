@@ -223,7 +223,7 @@ legordulo_szorny_nevek = ttk.Combobox(keret_felso, state='readonly')
 legordulo_szorny_nevek['values'] = csv_szorny_nevek
 legordulo_szorny_nevek.pack(side=LEFT)
 Label(keret_felso, text='Szörny szintje:').pack(side=LEFT)
-szamdoboz_szint = ttk.Spinbox(keret_felso, from_ = 1, to = 99, width = 3, textvariable = 1)
+szamdoboz_szint = Spinbox(keret_felso, from_ = 1, to = 99, width = 3, textvariable = 1)
 szamdoboz_szint.delete(0, "end")
 szamdoboz_szint.insert(0, 1)
 szamdoboz_szint.pack(side=LEFT)
