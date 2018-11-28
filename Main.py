@@ -136,7 +136,7 @@ class Tamadas:
         self.forma = r.group(4)
 
     def __str__(self):
-        return '{} {} +{} {}'.format(self.szam, self.nev, self.bonusz, self.forma)
+        return '{} {} + {} {}'.format(self.szam, self.nev, self.bonusz, self.forma)
 
 class Sebzes:
     def __init__(self, s):
@@ -178,10 +178,9 @@ class Leny:
         self.tamadasok = Tamadas(kwargs['tamadasok'])
         self.sebzes = Sebzes(kwargs['sebzes'])
 
-tipus = 'Féreg'
 talalat = keress('szornyek.csv', 'nev', 'Aboleth')
 l = Leny(**talalat)
-
+print(l.tamadasok)
 
 def toltds_be(esemeny):
     # mezo_tul.config(state = 'enabled')
@@ -202,7 +201,7 @@ def toltds_be(esemeny):
 
 
 gyoker = tk.Tk()
-gyoker.config(background="#535c68")
+gyoker.config(background="#f1f2f6")
 
 # class FelsoKeret(Frame):
 #     def __init__(self):
@@ -214,7 +213,7 @@ gyoker.config(background="#535c68")
 #         self.style = Style()
 #         self.style.theme_use('default')
 
-keret_felso = tk.Frame(gyoker, height=200, background="#535c68")
+keret_felso = tk.Frame(gyoker, height=200, background="#3498db")
 keret_felso.pack()
 keret_tulajdonsagok = tk.LabelFrame(gyoker, text='Szörny tulajdonságai')
 keret_tulajdonsagok.pack()
@@ -230,7 +229,7 @@ szamdoboz_szint.delete(0, "end")
 szamdoboz_szint.insert(0, 1)
 szamdoboz_szint.pack(side=tk.LEFT)
 # photo=PhotoImage(file="dice-red.png").subsample(20)
-gomb_betolt = tk.Button(keret_felso, text='Betöltöm!', compound='left', relief=tk.FLAT, background='#ff7979')
+gomb_betolt = tk.Button(keret_felso, text='Betöltöm!', compound='left', relief=tk.FLAT, background='#ff6b81', fg = '#fff', padx = 40, pady = 10)
 gomb_betolt.config()
 gomb_betolt.bind('<Button-1>', toltds_be)
 gomb_betolt.pack(side=tk.LEFT)
