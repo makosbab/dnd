@@ -18,14 +18,13 @@ REG_TAMADAS = r'(\w+) ([\+|\-]\d+) kh.'
 REGKIF_DOBAS = r'(\d)?d(\d{3|4|6|8|10|20|100})(x(\d)+)?((\+|\-)\d+)'
 
 REGKIF_SEBZES = r'(\w+)+ ' + REGKIF_DOBAS
-REGKIF_JARTASSAGOK = r'(\w+)+ ([\+|\-]\d+)'
-REGKIF_MENTOK = REGKIF_JARTASSAGOK
-REGKIF_TULAJDONSAGOK = r'(\w+)+ (\d+)'
+REGKIF_JARTASSAGOK = r'(?P<nev>\w+)+ (?P<pont>[\+|\-]\d+)'
+REGKIF_MENTOK = r'(?P<rovid_nev>\w+)+ (?P<pont>[\+|\-]\d+)'
+REGKIF_TULAJDONSAGOK = r'(?P<rovid_nev>\w+)+ (?P<ertek>\d+)'
 REGKIF_VF = r'(\d+) \((\+|\-\d+) termet, (\+\d+) Ügy, (\+\d+) természetes\)'
 REGKIF_ELETERO = REGKIF_DOBAS + r" \((\d+) ép\)"
-REGKIF_KEZDEMENYEZES = r'(\+\d+) \((\w+)\)'
-REGKIF_TAMADAS = r'(\d+) ([\w\s]+) (\+\d+) (\w+.)'
-
+REGKIF_KEZDEMENYEZES = r'(?P<modosito>\+\d+) \((?P<eredet>\w+)\)'
+REGKIF_TAMADAS = r'(?P<szam>\d+) (?P<nev>[\w\s]+) (?P<bonusz>\+\d+) (?P<forma>\w+.)'
 MENTO_NEVEK = {
     'Szív' : 'Szívósság',
     'Gyors' : 'Gyorsaság',
@@ -55,16 +54,15 @@ def keress(csv_fajl, kulcs, ertek):
         for sor in csv_olvaso:
             if sor[kulcs] == ertek:
                 return sor
-class Tulajdonsag:
+class Tulajdonsag(object):
 
-    def __init__(self, rovid_nev='', nev = '', ideig_ertek=0, ideig_mod=0):
+    def __init__(self, rovid_nev, ertek, ideig_ertek=0, ideig_mod=0):
         self.rovid_nev = rovid_nev
-        self.nev = nev
-
-        #self.modosito = 0
+        self.ertek = int(ertek)
+        # self.nev = Szabalyok.TULAJDONSAGOK[self.rovid_nev]
         self.ideiglenes_ertek = ideig_ertek or 0
         self.ideiglenes_modosito = ideig_mod or 0
-        self.ertek = Kocka.TulajdonsagDobas().eredmeny
+        # self.ertek = Kocka.TulajdonsagDobas().eredmeny
 
         #print(self.ertek)
         #self.modosito = math.floor((self.ertek - 10 ) / 2)
@@ -73,7 +71,7 @@ class Tulajdonsag:
         return math.floor((self.ertek - 10 ) / 2)
 
     def __str__(self):
-        return '{} értéke {}, módosító: {}'.format(self.nev, self.ertek, self.modosito)
+        return '{} értéke {}, módosító: {}'.format(self.rovid_nev, self.ertek, self.modosito)
 
 
 class Eletero:
@@ -99,8 +97,8 @@ class Vf:
 class Mento:
     def __init__(self, rovid_nev, pont):
         self.rovid_nev = rovid_nev
-        self.nev = MENTO_NEVEK[self.rovid_nev]
         self.pont = pont
+        self.nev = MENTO_NEVEK[self.rovid_nev]
 
     def __str__(self):
         return '{} mentő értéke: {}'.format(self.nev, self.pont)
@@ -119,21 +117,19 @@ class Fejlesztes:
             self.elet_kocka, self.tamadas_bonusz, self.jo_mentodobas, self.jartassag_pontok, self.kepessegek)
 
 class Kezdemenyezes:
-    def __init__(self, k):
-        r = re.match(REGKIF_KEZDEMENYEZES, k)
-        self.modosito = int(r.group(1))
-        self.eredet = r.group(2)
+    def __init__(self, modosito, eredet):
+        self.modosito = int(modosito)
+        self.eredet = eredet
 
     def __str__(self):
         return '{} ({})'.format(self.modosito, self.eredet)
 
 class Tamadas:
-    def __init__(self, t):
-        r = re.match(REGKIF_TAMADAS, t)
-        self.szam = int(r.group(1)) if r.group(1) else 1
-        self.nev = r.group(2)
-        self.bonusz = int(r.group(3)) if r.group(3) else 0
-        self.forma = r.group(4)
+    def __init__(self, szam, nev, bonusz, forma):
+        self.szam = int(szam) if szam else 1
+        self.nev = nev
+        self.bonusz = bonusz
+        self.forma = forma
 
     def __str__(self):
         return '{} {} + {} {}'.format(self.szam, self.nev, self.bonusz, self.forma)
@@ -145,10 +141,17 @@ class Sebzes:
         self.dobas = r.group(2)
         self.kulonleges = r.group(3) if r.group(3) else ''
 
-class Kepesseg:
-    def __init__(self):
-        self.nev = ''
-        pass
+class Kepesseg(object):
+    def __init__(self, nev):
+        self.nev = nev
+class KulonlegesKepesseg(Kepesseg):
+    pass
+
+class Jartassag(object):
+    def __init__(self, nev, pont):
+
+        self.nev = nev
+        self.pont = pont
 
 class Leny:
     def __init__(self, **kwargs):
@@ -159,28 +162,38 @@ class Leny:
         self.meret = kwargs['meret']
         self.tipus = kwargs['tipus']
         self.tipus_modosito = kwargs['tipus_modosito'] if kwargs['tipus_modosito'] else ''
-
         #kulcs = rövid név, érték = új tulajdonság(rövid név, hosszú név, pont)
-        szotar_tul = dict(elem.split(' ') for elem in kwargs['tulajdonsagok'].split(', '))
-        self.tulajdonsagok = {r : Tulajdonsag(r, int(p)) for (r, p) in szotar_tul.items()}
+        self.tulajdonsagok = [Tulajdonsag(**t.groupdict()) for t in re.finditer(REGKIF_TULAJDONSAGOK, kwargs['tulajdonsagok'])]
 
         self.eletero_dobas =  Eletero(kwargs['eletero_dobas'])
-        self.kezdemenyezes = Kezdemenyezes(kwargs['kezdemenyezes'])
+        self.kezdemenyezes = Kezdemenyezes(**re.search(REGKIF_KEZDEMENYEZES,kwargs['kezdemenyezes']).groupdict())
         self.vf = Vf(kwargs['vf'])
         self.fejlesztes = Fejlesztes(self.tipus)
-
-        szotar_mentok = dict(elem.split(' ') for elem in kwargs['mentok'].split(', '))
-        self.mentok = {r : Mento(r, int(p)) for (r, p) in szotar_mentok.items()}
-
+        self.mentok = [Mento(**m.groupdict()) for m in re.finditer(REGKIF_MENTOK, kwargs['mentok'])]
+        self.jartassagok = Jartassag(**re.search(REGKIF_JARTASSAGOK, kwargs['jartassagok']).groupdict())
+        self.kepessegek = kwargs['kepessegek'].split(', ')
         self.szint = re.match(REGKIF_ELETERO, kwargs['eletero_dobas']).group(1)
         self.kihivasi_ertek = int(kwargs['kihivasi_ertek'])
+        self.kulonleges_tamadasok = kwargs['kulonleges_tamadasok'].split(', ')
+        self.kulonleges_kepessegek = kwargs['kulonleges_kepessegek'].split(', ')
 
-        self.tamadasok = Tamadas(kwargs['tamadasok'])
+        # self.tamadasok = Tamadas(kwargs['tamadasok'])
+        # r = re.match(REGKIF_TAMADAS, t)
+        # self.szam = int(r.group(1)) if r.group(1) else 1
+        # self.nev = r.group(2)
+        # self.bonusz = int(r.group(3)) if r.group(3) else 0
+        # self.forma = r.group(4)
+        self.tamadasok = [Tamadas(**t.groupdict()) for t in re.finditer(REGKIF_TAMADAS, kwargs['tamadasok'])]
         self.sebzes = Sebzes(kwargs['sebzes'])
 
 talalat = keress('szornyek.csv', 'nev', 'Aboleth')
 l = Leny(**talalat)
-print(l.tamadasok)
+# print(l.jartassagok.nev)
+# uj = re.match(REGKIF_TULAJDONSAGOK, "Erő 26, Ügy 12, Áll 20, Int 15, Böl 17, Kar 17")
+# uj2 = uj.groupdict()
+# print(uj)
+
+
 
 def toltds_be(esemeny):
     # mezo_tul.config(state = 'enabled')
@@ -188,12 +201,12 @@ def toltds_be(esemeny):
         gomb.config(state='normal')
 
 
-    for kulcs in l.tulajdonsagok.keys():
-        gombok_tulajdonsagokhoz[kulcs].delete(0, "end")
-        gombok_tulajdonsagokhoz[kulcs].insert(0, l.tulajdonsagok[kulcs].ertek)
+    for t in l.tulajdonsagok:
+        gombok_tulajdonsagokhoz[t.rovid_nev].delete(0, "end")
+        gombok_tulajdonsagokhoz[t.rovid_nev].insert(0, t.ertek)
     print('VF: {}'.format(str(l.vf.osszes)))
-    print(l.tulajdonsagok['Ügy'].nev)
-    print(l.sebzes)
+    for t in l.tamadasok:
+        print(t)
     mezo_vf_teljes.config(state='normal')
     mezo_vf_teljes.delete(0, "end")
     mezo_vf_teljes.insert(0, l.vf.osszes)
