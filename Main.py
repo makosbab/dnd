@@ -179,8 +179,9 @@ class Leny:
         self.vf = Vf(kwargs['vf'])
         self.fejlesztes = Fejlesztes(self.tipus)
         self.mentok = [Mento(**m.groupdict()) for m in re.finditer(REGKIF_MENTOK, kwargs['mentok'])]
-        self.jartassagok = [Jartassag(**j.groupdict()) for j in re.finditer(REGKIF_JARTASSAGOK, kwargs['jartassagok'])]
-
+        self.jartassagok = [Jartassag(*j.groups()) for j in re.finditer(REGKIF_JARTASSAGOK, kwargs['jartassagok'])]
+        for j in self.jartassagok:
+            print(j)
         self.kepessegek = kwargs['kepessegek'].split(', ')
         self.szint = re.match(REGKIF_ELETERO, kwargs['eletero_dobas']).group(1)
         self.kihivasi_ertek = int(kwargs['kihivasi_ertek'])
