@@ -9,6 +9,7 @@ import io
 import Szabalyok
 import tkinter as tk
 from tkinter import ttk
+from collections import namedtuple
 import re
 #from tkinter import Tk, RIGHT, BOTH, RAISED
 #from tkinter.ttk import Frame, Button, Style
@@ -25,6 +26,7 @@ REGKIF_VF = r'(\d+) \((\+|\-\d+) termet, (\+\d+) Ügy, (\+\d+) természetes\)'
 REGKIF_ELETERO = REGKIF_DOBAS + r" \((\d+) ép\)"
 REGKIF_KEZDEMENYEZES = r'(?P<modosito>\+\d+) \((?P<eredet>\w+)\)'
 REGKIF_TAMADAS = r'(?P<szam>\d+) (?P<nev>[\w\s]+) (?P<bonusz>\+\d+) (?P<forma>\w+.)'
+REGKIF_OLDAL_ELERES = r'(\d+) x (\d+) \/ (.+)'
 MENTO_NEVEK = {
     'Szív' : 'Szívósság',
     'Gyors' : 'Gyorsaság',
@@ -176,24 +178,15 @@ class Leny:
         self.kihivasi_ertek = int(kwargs['kihivasi_ertek'])
         self.kulonleges_tamadasok = kwargs['kulonleges_tamadasok'].split(', ')
         self.kulonleges_kepessegek = kwargs['kulonleges_kepessegek'].split(', ')
+        print(self.kulonleges_tamadasok)
+        oldal_eleres = namedtuple('oldal_eleres', 'szelesseg hosszusag tav')
+        self.oldal_eleres = oldal_eleres(*re.match(REGKIF_OLDAL_ELERES, kwargs['oldal_eleres']).groups())
 
-        # self.tamadasok = Tamadas(kwargs['tamadasok'])
-        # r = re.match(REGKIF_TAMADAS, t)
-        # self.szam = int(r.group(1)) if r.group(1) else 1
-        # self.nev = r.group(2)
-        # self.bonusz = int(r.group(3)) if r.group(3) else 0
-        # self.forma = r.group(4)
         self.tamadasok = [Tamadas(**t.groupdict()) for t in re.finditer(REGKIF_TAMADAS, kwargs['tamadasok'])]
         self.sebzes = Sebzes(kwargs['sebzes'])
 
 talalat = keress('szornyek.csv', 'nev', 'Aboleth')
 l = Leny(**talalat)
-# print(l.jartassagok.nev)
-# uj = re.match(REGKIF_TULAJDONSAGOK, "Erő 26, Ügy 12, Áll 20, Int 15, Böl 17, Kar 17")
-# uj2 = uj.groupdict()
-# print(uj)
-
-
 
 def toltds_be(esemeny):
     # mezo_tul.config(state = 'enabled')
@@ -207,6 +200,7 @@ def toltds_be(esemeny):
     print('VF: {}'.format(str(l.vf.osszes)))
     for t in l.tamadasok:
         print(t)
+    print(l.oldal_eleres.tav)
     mezo_vf_teljes.config(state='normal')
     mezo_vf_teljes.delete(0, "end")
     mezo_vf_teljes.insert(0, l.vf.osszes)
