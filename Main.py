@@ -21,7 +21,7 @@ REGKIF_DOBAS = r'(\d)?d(\d{3|4|6|8|10|20|100})(x(\d)+)?((\+|\-)\d+)'
 REGKIF_SEBZES = r'(\w+)+ ' + REGKIF_DOBAS
 REGKIF_JARTASSAGOK = r'(?P<nev>\w+)+ (?P<pont>[\+|\-]\d+)'
 REGKIF_MENTOK = r'(?P<rovid_nev>\w+)+ (?P<pont>[\+|\-]\d+)'
-REGKIF_TULAJDONSAGOK = r'(?P<rovid_nev>\w+)+ (?P<ertek>\d+)'
+REGKIF_TULAJDONSAGOK = r'(?P<rovid_nev>\w+)+ (?P<ertek>\d+|\-)'
 REGKIF_VF = r'(\d+) \((\+|\-\d+) termet, (\+\d+) Ügy, (\+\d+) természetes\)'
 REGKIF_ELETERO = REGKIF_DOBAS + r" \((\d+) ép\)"
 REGKIF_KEZDEMENYEZES = r'(?P<modosito>\+\d+) \((?P<eredet>\w+)\)'
@@ -60,7 +60,11 @@ class Tulajdonsag(object):
 
     def __init__(self, rovid_nev, ertek, ideig_ertek=0, ideig_mod=0):
         self.rovid_nev = rovid_nev
-        self.ertek = int(ertek)
+        try:
+            self.ertek = int(ertek)
+        except ValueError:
+            self.ertek = 'Nincs'
+
         # self.nev = Szabalyok.TULAJDONSAGOK[self.rovid_nev]
         self.ideiglenes_ertek = ideig_ertek or 0
         self.ideiglenes_modosito = ideig_mod or 0
@@ -70,7 +74,10 @@ class Tulajdonsag(object):
         #self.modosito = math.floor((self.ertek - 10 ) / 2)
     @property
     def modosito(self):
-        return math.floor((self.ertek - 10 ) / 2)
+        try:
+            return math.floor((self.ertek - 10 ) / 2)
+        except TypeError:
+            return 0
 
     def __str__(self):
         return '{} értéke {}, módosító: {}'.format(self.rovid_nev, self.ertek, self.modosito)
@@ -172,15 +179,16 @@ class Leny:
         self.vf = Vf(kwargs['vf'])
         self.fejlesztes = Fejlesztes(self.tipus)
         self.mentok = [Mento(**m.groupdict()) for m in re.finditer(REGKIF_MENTOK, kwargs['mentok'])]
-        self.jartassagok = Jartassag(**re.search(REGKIF_JARTASSAGOK, kwargs['jartassagok']).groupdict())
+        self.jartassagok = [Jartassag(**j.groupdict()) for j in re.finditer(REGKIF_JARTASSAGOK, kwargs['jartassagok'])]
+
         self.kepessegek = kwargs['kepessegek'].split(', ')
         self.szint = re.match(REGKIF_ELETERO, kwargs['eletero_dobas']).group(1)
         self.kihivasi_ertek = int(kwargs['kihivasi_ertek'])
-        self.kulonleges_tamadasok = kwargs['kulonleges_tamadasok'].split(', ')
-        self.kulonleges_kepessegek = kwargs['kulonleges_kepessegek'].split(', ')
-        print(self.kulonleges_tamadasok)
-        oldal_eleres = namedtuple('oldal_eleres', 'szelesseg hosszusag tav')
-        self.oldal_eleres = oldal_eleres(*re.match(REGKIF_OLDAL_ELERES, kwargs['oldal_eleres']).groups())
+        self.kulonleges_tamadasok = (str.capitalize(kt) for kt in kwargs['kulonleges_tamadasok'].split(', '))
+        self.kulonleges_kepessegek = (str.capitalize(kk) for kk in kwargs['kulonleges_kepessegek'].split(', '))
+
+        OldalElteres = namedtuple('OldalElteres', 'szelesseg hosszusag tav')
+        self.oldal_eleres = OldalElteres(*re.match(REGKIF_OLDAL_ELERES, kwargs['oldal_eleres']).groups())
 
         self.tamadasok = [Tamadas(**t.groupdict()) for t in re.finditer(REGKIF_TAMADAS, kwargs['tamadasok'])]
         self.sebzes = Sebzes(kwargs['sebzes'])
@@ -204,6 +212,7 @@ def toltds_be(esemeny):
     mezo_vf_teljes.config(state='normal')
     mezo_vf_teljes.delete(0, "end")
     mezo_vf_teljes.insert(0, l.vf.osszes)
+    print(l.tulajdonsagok[2])
 
 
 
