@@ -1,6 +1,6 @@
 #!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
-
+import this
 import math
 import Kocka
 import sys
@@ -22,7 +22,7 @@ REGKIF_SEBZES = r'(\w+)+ ' + REGKIF_DOBAS
 REGKIF_JARTASSAGOK = r'(?P<nev>\w+)+ (?P<pont>[\+|\-]\d+)'
 REGKIF_MENTOK = r'(?P<rovid_nev>\w+)+ (?P<pont>[\+|\-]\d+)'
 REGKIF_TULAJDONSAGOK = r'(?P<rovid_nev>\w+)+ (?P<ertek>\d+|\-)'
-REGKIF_VF = r'(\d+) \((\+|\-\d+) termet, (\+\d+) Ügy, (\+\d+) természetes\)'
+REGKIF_VF = r'(\d+) \((?P<meret_mod>\+|\-\d+) termet, (?P<tul_mod>\+\d+) Ügy, (?P<term_mod>\+\d+) természetes\)'
 REGKIF_ELETERO = REGKIF_DOBAS + r" \((\d+) ép\)"
 REGKIF_KEZDEMENYEZES = r'(?P<modosito>\+\d+) \((?P<eredet>\w+)\)'
 REGKIF_TAMADAS = r'(?P<szam>\d+) (?P<nev>[\w\s]+) (?P<bonusz>\+\d+) (?P<forma>\w+.)'
@@ -90,11 +90,10 @@ class Eletero:
         self.ideig_mod = 0
 
 class Vf:
-    def __init__(self, v):
-        r = re.match(REGKIF_VF, v)
-        self.meret_mod = int(r.group(2)) if r else 0
-        self.tul_mod = int(r.group(3)) if r else 0
-        self.term_mod = int(r.group(4)) if r else 0
+    def __init__(self, meret_mod, tul_mod, term_mod):
+        self.meret_mod = int(meret_mod) if meret_mod else 0
+        self.tul_mod = int(tul_mod) if tul_mod else 0
+        self.term_mod = int(term_mod) if term_mod else 0
 
     @property
     def osszes(self):
@@ -144,11 +143,10 @@ class Tamadas:
         return '{} {} + {} {}'.format(self.szam, self.nev, self.bonusz, self.forma)
 
 class Sebzes:
-    def __init__(self, s):
-        r = re.match(REGKIF_SEBZES, s)
-        self.tamadas_nev = r.group(1)
-        self.dobas = r.group(2)
-        self.kulonleges = r.group(3) if r.group(3) else ''
+    def __init__(self, tamadas_nev, dobas, kulonleges):
+        self.tamadas_nev = tamadas_nev
+        self.dobas = dobas
+        self.kulonleges = kulonleges
 
 class Kepesseg(object):
     def __init__(self, nev):
@@ -161,6 +159,17 @@ class Jartassag(object):
 
         self.nev = nev
         self.pont = pont
+
+class OldalEleres(object):
+    def __init__(self, szelesseg, hosszusag, tav):
+        pass
+        self.szelesseg = szelesseg
+        self.hosszusag = hosszusag
+        self.tav = tav
+# Kezdemenyezes = namedtuple('Kezdemenyezes', 'modosito eredet')
+# Jartassag = namedtuple('Jartassag', 'nev pont')
+# OldalElteres = namedtuple('OldalElteres', 'szelesseg hosszusag tav')
+# Sebzes = namedtuple('Sebzes', 'tamadas_nev dobas kulonleges')
 
 class Leny:
     def __init__(self, **kwargs):
@@ -175,24 +184,29 @@ class Leny:
         self.tulajdonsagok = [Tulajdonsag(**t.groupdict()) for t in re.finditer(REGKIF_TULAJDONSAGOK, kwargs['tulajdonsagok'])]
 
         self.eletero_dobas =  Eletero(kwargs['eletero_dobas'])
-        self.kezdemenyezes = Kezdemenyezes(**re.search(REGKIF_KEZDEMENYEZES,kwargs['kezdemenyezes']).groupdict())
-        self.vf = Vf(kwargs['vf'])
+
+        self.kezdemenyezes = Kezdemenyezes(*re.match(REGKIF_KEZDEMENYEZES, kwargs['kezdemenyezes']).groups())
+        # self.kezdemenyezes = Kezdemenyezes(**re.search(REGKIF_KEZDEMENYEZES,kwargs['kezdemenyezes']).groupdict())
+        self.vf = Vf(**re.match(REGKIF_VF, kwargs['vf']).groupdict())
         self.fejlesztes = Fejlesztes(self.tipus)
         self.mentok = [Mento(**m.groupdict()) for m in re.finditer(REGKIF_MENTOK, kwargs['mentok'])]
+
+
         self.jartassagok = [Jartassag(*j.groups()) for j in re.finditer(REGKIF_JARTASSAGOK, kwargs['jartassagok'])]
-        for j in self.jartassagok:
-            print(j)
+        # self.jartassagok = [Jartassag(*j.groups()) for j in re.finditer(REGKIF_JARTASSAGOK, kwargs['jartassagok'])]
+
         self.kepessegek = kwargs['kepessegek'].split(', ')
         self.szint = re.match(REGKIF_ELETERO, kwargs['eletero_dobas']).group(1)
         self.kihivasi_ertek = int(kwargs['kihivasi_ertek'])
         self.kulonleges_tamadasok = (str.capitalize(kt) for kt in kwargs['kulonleges_tamadasok'].split(', '))
         self.kulonleges_kepessegek = (str.capitalize(kk) for kk in kwargs['kulonleges_kepessegek'].split(', '))
 
-        OldalElteres = namedtuple('OldalElteres', 'szelesseg hosszusag tav')
-        self.oldal_eleres = OldalElteres(*re.match(REGKIF_OLDAL_ELERES, kwargs['oldal_eleres']).groups())
+
+        self.oldal_eleres = OldalEleres(*re.match(REGKIF_OLDAL_ELERES, kwargs['oldal_eleres']).groups())
 
         self.tamadasok = [Tamadas(**t.groupdict()) for t in re.finditer(REGKIF_TAMADAS, kwargs['tamadasok'])]
-        self.sebzes = Sebzes(kwargs['sebzes'])
+        print(re.match(REGKIF_SEBZES, kwargs['sebzes']).groups())
+        # self.sebzes = Sebzes(*re.match(REGKIF_SEBZES, kwargs['sebzes']).groups())
 
 talalat = keress('szornyek.csv', 'nev', 'Aboleth')
 l = Leny(**talalat)
