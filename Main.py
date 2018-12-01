@@ -1,6 +1,5 @@
 #!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
-import this
 import math
 import Kocka
 import sys
