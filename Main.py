@@ -88,9 +88,17 @@ class Tulajdonsag(object):
 class EleteroDobas:
     def __init__(self, dobas, eletpont):
         self.eletero_dobas = Kocka.Dobas(dobas)
+        self.szorny_szintje = self.eletero_dobas.kocka_db
         # r = re.match(REGKIF_ELETERO, e)
         self.eletpont = eletpont
         # self.ideig_mod = 0
+
+        @property
+        def eletpont():
+            return self.eletpont + self.eletero_dobas.dobas_eredmeny
+        @property
+        def szorny_szintje():
+            return self.eletero_dobas.kocka_db
 
 class Vf:
     def __init__(self, meret_mod, tul_mod, term_mod):
@@ -176,6 +184,7 @@ class OldalEleres(object):
 
 class Leny:
     def __init__(self, **kwargs):
+
         self.hord_fegyvert = False
         self.van_pajzsa = False
         self.van_vertezete = False
@@ -214,7 +223,7 @@ class Leny:
 
 talalat = keress('szornyek.csv', 'nev', 'Aboleth')
 l = Leny(**talalat)
-
+l.eletero_dobas.eletero_dobas = Kocka.Dobas("9d6+3")
 def toltds_be(esemeny):
     # mezo_tul.config(state = 'enabled')
     for gomb in keret_tulajdonsagok.winfo_children():
@@ -232,6 +241,7 @@ def toltds_be(esemeny):
     mezo_vf_teljes.delete(0, "end")
     mezo_vf_teljes.insert(0, l.vf.osszes)
     print(l.tulajdonsagok[2])
+    print(l.eletero_dobas.szorny_szintje)
 
 
 
