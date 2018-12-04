@@ -1,0 +1,9 @@
+regi_meret,uj_meret,ero,ugy,all,term_vertezet,vf_tamadas
+"Apró","Pöttöm",0,-2,0,0,-4
+"Pöttöm","Pici",2,-2, 0,0,-2
+"Pici","Kicsi",4,-2, 0,0,-1
+"Kicsi","Közepes",4,-2,2,0,-1
+"Közepes","Nagy",8,-2, 4,2,-1
+"Nagy","Óriási",8,-2,4,3,-1
+"Óriási","Hatalmas",8,0,4,4,-2
+"Hatalmas","Gigászi",8,0,4,5,-4

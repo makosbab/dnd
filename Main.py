@@ -15,14 +15,14 @@ import re
 
 REGKIF_KTAM = r'(\w+)'
 REG_TAMADAS = r'(\w+) ([\+|\-]\d+) kh.'
-REGKIF_DOBAS = r'(\d)?d(\d{3|4|6|8|10|20|100})(x(\d)+)?((\+|\-)\d+)'
+REGKIF_DOBAS = r'(\d)?d(\d{2,3|4|6|8|10|20|100})(x(\d)+)?((\+|\-)\d+)'
 
 REGKIF_SEBZES = r'(\w+)+ ' + REGKIF_DOBAS
 REGKIF_JARTASSAGOK = r'(?P<nev>\w+)+ (?P<pont>[\+|\-]\d+)'
 REGKIF_MENTOK = r'(?P<rovid_nev>\w+)+ (?P<pont>[\+|\-]\d+)'
 REGKIF_TULAJDONSAGOK = r'(?P<rovid_nev>\w+)+ (?P<ertek>\d+|\-)'
 REGKIF_VF = r'(\d+) \((?P<meret_mod>\+|\-\d+) termet, (?P<tul_mod>\+\d+) Ügy, (?P<term_mod>\+\d+) természetes\)'
-REGKIF_ELETERO = REGKIF_DOBAS + r" \((\d+) ép\)"
+REGKIF_ELETERO = r"(\d?d\d+\+\d+) (?:\((\d+) ép\))"
 REGKIF_KEZDEMENYEZES = r'(?P<modosito>\+\d+) \((?P<eredet>\w+)\)'
 REGKIF_TAMADAS = r'(?P<szam>\d+) (?P<nev>[\w\s]+) (?P<bonusz>\+\d+) (?P<forma>\w+.)'
 REGKIF_OLDAL_ELERES = r'(\d+) x (\d+) \/ (.+)'
@@ -50,11 +50,14 @@ def olvass(reg_kif, szoveg):
     return talalatok
 
 def keress(csv_fajl, kulcs, ertek):
-    with open(csv_fajl, 'r', encoding='utf-8') as csv_szornyek:
-        csv_olvaso = csv.DictReader(csv_szornyek)
+    with open(csv_fajl, 'r', encoding='utf-8') as c:
+        csv_olvaso = csv.DictReader(c)
         for sor in csv_olvaso:
             if sor[kulcs] == ertek:
                 return sor
+
+ujsor = keress("meretnovekedes.csv","uj_meret","Nagy")
+print(ujsor)
 class Tulajdonsag(object):
 
     def __init__(self, rovid_nev, ertek, ideig_ertek=0, ideig_mod=0):
@@ -82,11 +85,12 @@ class Tulajdonsag(object):
         return '{} értéke {}, módosító: {}'.format(self.rovid_nev, self.ertek, self.modosito)
 
 
-class Eletero:
-    def __init__(self, e):
-        r = re.match(REGKIF_ELETERO, e)
-        self.teljes_eletero = int(r.group(7)) if r else 0
-        self.ideig_mod = 0
+class EleteroDobas:
+    def __init__(self, dobas, eletpont):
+        self.eletero_dobas = Kocka.Dobas(dobas)
+        # r = re.match(REGKIF_ELETERO, e)
+        self.eletpont = eletpont
+        # self.ideig_mod = 0
 
 class Vf:
     def __init__(self, meret_mod, tul_mod, term_mod):
@@ -181,8 +185,9 @@ class Leny:
         self.tipus_modosito = kwargs['tipus_modosito'] if kwargs['tipus_modosito'] else ''
         #kulcs = rövid név, érték = új tulajdonság(rövid név, hosszú név, pont)
         self.tulajdonsagok = [Tulajdonsag(**t.groupdict()) for t in re.finditer(REGKIF_TULAJDONSAGOK, kwargs['tulajdonsagok'])]
-
-        self.eletero_dobas =  Eletero(kwargs['eletero_dobas'])
+        eleterodobas = re.match(REGKIF_ELETERO, kwargs['eletero_dobas']).groups()
+        print(eleterodobas)
+        self.eletero_dobas =  EleteroDobas(*eleterodobas)
 
         self.kezdemenyezes = Kezdemenyezes(*re.match(REGKIF_KEZDEMENYEZES, kwargs['kezdemenyezes']).groups())
         # self.kezdemenyezes = Kezdemenyezes(**re.search(REGKIF_KEZDEMENYEZES,kwargs['kezdemenyezes']).groupdict())

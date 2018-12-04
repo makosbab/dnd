@@ -11,7 +11,7 @@ class Kocka:
     def __init__ (self, oldalak, szazalekos = False, tizes = False):
         self.kocka_oldalak  = oldalak
         self.kocka_nev = 'd'+str(oldalak)
-        if oldalak not in (4, 6, 8, 10, 12, 20, 100):
+        if oldalak not in (2, 3, 4, 6, 8, 10, 12, 20, 100):
             raise Exception('Nem létezik {}-oldalú DnD kocka.'.format(oldalak))
         if oldalak is 10 and szazalekos:
             if tizes:
@@ -54,7 +54,7 @@ class Dobas:
             if talalat.group(4):
                 self.dobas_szorzo = int(talalat.group(4))
             if talalat.group(5):
-                self.bonusz = int(talalat.group(5))
+                self.bonusz = talalat.group(5)
         i = 0
         while i < self.kocka_db:
            kocka = Kocka(self.kocka_oldalak)
