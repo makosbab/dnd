@@ -30,7 +30,7 @@ class Kocka:
 class Dobas:
     #(\d)?d(\d{1,2})([\s]?(\+|\-)[\s]?(\d*))?(x(\d))?(\+|\-)(\d*)
     #(\d)?d(\d{1,2})(x?(\d)+)?((\+|\-)(\d*))?
-    REGKIF = '(\d)?d(\d{1,2})(x?(\d)+)?(\+|\-\d*)?'
+    REGKIF = r'(\d+)d(\d{2,3|4|6|8|10|20|100})(x(\d)+)?((\+|\-)\d+)'
 
     def __init__ (self, dobas='', kocka = None):
         self.kocka_oldalak = 0
