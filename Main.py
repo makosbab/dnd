@@ -85,13 +85,14 @@ class Tulajdonsag(object):
         return '{} értéke {}, módosító: {}'.format(self.rovid_nev, self.ertek, self.modosito)
 
 
-class EleteroDobas(object):
-    def __init__(self, dobas, eletpont):
+class Eletero(object):
+    def __init__(self, dobas, eletpont, alap_allokepesseg_mento):
         self.__dobas = Kocka.Dobas(dobas)
         # self._szorny_szintje = self.eletero_dobas.kocka_db
         # r = re.match(REGKIF_ELETERO, e)
         self.__eletpont = eletpont
         self.__szorny_szintje = self.__dobas.kocka_db
+        self.alap_allokepesseg_mento = alap_allokepesseg_mento
         # self.ideig_mod = 0
 
     @property
@@ -141,18 +142,8 @@ class Mento:
     def __str__(self):
         return '{} mentő értéke: {}'.format(self.nev, self.pont)
 
-class Fejlesztes:
-    def __init__(self, tipus):
-        fejlesztes = keress('fejlesztes.csv', 'tipus', tipus)
-        self.elet_kocka = fejlesztes['eletero_dobas']
-        self.tamadas_bonusz = fejlesztes['tamadas_bonusz']
-        self.jo_mentodobas = fejlesztes['jo_mentodobas']
-        self.jartassag_pontok = fejlesztes['jartassagpontok']
-        self.kepessegek = fejlesztes['kepessegek']
-
-    def __str__(self):
-        return 'életkocka: {}, tám. bón.: {}, jó mentő: {}, járt. pontok: {}, kép.: {}'.format(
-            self.elet_kocka, self.tamadas_bonusz, self.jo_mentodobas, self.jartassag_pontok, self.kepessegek)
+Valtozat = namedtuple('Valtozat', ['min', 'max', 'meret'])
+Fejlesztes = namedtuple('Fejlesztes',['leggyengebb_valtozat','legerosebb_valtozat'])
 
 class Kezdemenyezes:
     def __init__(self, modosito, eredet):
@@ -214,20 +205,23 @@ class Leny:
         #kulcs = rövid név, érték = új tulajdonság(rövid név, hosszú név, pont)
         self.tulajdonsagok = [Tulajdonsag(**t.groupdict()) for t in re.finditer(REGKIF_TULAJDONSAGOK, kwargs['tulajdonsagok'])]
 
-        self.eletero_dobas =  EleteroDobas(*re.match(REGKIF_ELETERO, kwargs['eletero_dobas']).groups())
+        self.eletero =  Eletero(*re.match(REGKIF_ELETERO, kwargs['eletero_dobas']).groups(), self.tulajdonsagok[2])
 
         self.kezdemenyezes = Kezdemenyezes(*re.match(REGKIF_KEZDEMENYEZES, kwargs['kezdemenyezes']).groups())
         # self.kezdemenyezes = Kezdemenyezes(**re.search(REGKIF_KEZDEMENYEZES,kwargs['kezdemenyezes']).groupdict())
         self.vf = Vf(**re.match(REGKIF_VF, kwargs['vf']).groupdict())
-        self.fejlesztes = Fejlesztes(self.tipus)
+        # self.fejlesztes = Fejlesztes(self.tipus)
         self.mentok = [Mento(**m.groupdict()) for m in re.finditer(REGKIF_MENTOK, kwargs['mentok'])]
 
+        # print(re.findall(r"(\d+)-(\d+) ÉK \((\S+)\)",kwargs['fejlesztes']))
 
+        # self.fejlesztes = Fejlesztes(*re.match(r"(\d+)-(\d+) ÉK \((\S+)\)",kwargs['fejlesztes']).groups())
+        print(kwargs['fejlesztes'].split(', '))
         self.jartassagok = [Jartassag(*j.groups()) for j in re.finditer(REGKIF_JARTASSAGOK, kwargs['jartassagok'])]
         # self.jartassagok = [Jartassag(*j.groups()) for j in re.finditer(REGKIF_JARTASSAGOK, kwargs['jartassagok'])]
 
         self.kepessegek = kwargs['kepessegek'].split(', ')
-        self.szint = re.match(REGKIF_ELETERO, kwargs['eletero_dobas']).group(1)
+
         self.kihivasi_ertek = int(kwargs['kihivasi_ertek'])
         self.kulonleges_tamadasok = (str.capitalize(kt) for kt in kwargs['kulonleges_tamadasok'].split(', '))
         self.kulonleges_kepessegek = (str.capitalize(kk) for kk in kwargs['kulonleges_kepessegek'].split(', '))
@@ -241,11 +235,11 @@ class Leny:
 
 talalat = keress('szornyek.csv', 'nev', 'Aboleth')
 l = Leny(**talalat)
-print(l.eletero_dobas.eletpont)
-print(l.eletero_dobas.szorny_szintje)
-l.eletero_dobas.dobas = Kocka.Dobas("10d6+3")
-print(l.eletero_dobas.eletpont)
-print(l.eletero_dobas.szorny_szintje)
+print(l.eletero.eletpont)
+print(l.eletero.szorny_szintje)
+l.eletero.dobas = Kocka.Dobas("10d6+3")
+print(l.eletero.eletpont)
+print(l.eletero.szorny_szintje)
 # def toltds_be(esemeny):
 #     # mezo_tul.config(state = 'enabled')
 #     for gomb in keret_tulajdonsagok.winfo_children():
