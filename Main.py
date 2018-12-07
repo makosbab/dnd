@@ -10,8 +10,11 @@ import tkinter as tk
 from tkinter import ttk
 from collections import namedtuple
 import re
-#from tkinter import Tk, RIGHT, BOTH, RAISED
-#from tkinter.ttk import Frame, Button, Style
+# from tkinter import Tk, RIGHT, BOTH, RAISED
+# from tkinter.ttk import Frame, Button, Style
+
+
+print(f.split(' ') for f in "Erő 26, Ügy 12, Áll 20, Int 15, Böl 17, Kar 17".split(", "))
 
 REGKIF_KTAM = r'(\w+)'
 REG_TAMADAS = r'(\w+) ([\+|\-]\d+) kh.'
@@ -22,18 +25,16 @@ REGKIF_JARTASSAGOK = r'(?P<nev>\w+)+ (?P<pont>[\+|\-]\d+)'
 REGKIF_MENTOK = r'(?P<rovid_nev>\w+)+ (?P<pont>[\+|\-]\d+)'
 REGKIF_TULAJDONSAGOK = r'(?P<rovid_nev>\w+)+ (?P<ertek>\d+|\-)'
 REGKIF_VF = r'(\d+) \((?P<meret_mod>\+|\-\d+) termet, (?P<tul_mod>\+\d+) Ügy, (?P<term_mod>\+\d+) természetes\)'
-REGKIF_ELETERO = r"(\d?d\d+\+\d+) (?:\((\d+) ép\))"
+# self, dobas, eletpont, alap_allokepesseg_mento
+REGKIF_ELETERO = r"(?P<dobas>\d?d\d+\+\d+) (?:\((?P<eletpont>\d+) ép\))"
 REGKIF_KEZDEMENYEZES = r'(?P<modosito>\+\d+) \((?P<eredet>\w+)\)'
 REGKIF_TAMADAS = r'(?P<szam>\d+) (?P<nev>[\w\s]+) (?P<bonusz>\+\d+) (?P<forma>\w+.)'
 REGKIF_OLDAL_ELERES = r'(\d+) x (\d+) \/ (.+)'
 MENTO_NEVEK = {
-    'Szív' : 'Szívósság',
-    'Gyors' : 'Gyorsaság',
-    'Akarat' : 'Akaraterő',
+    'Szív': 'Szívósság',
+    'Gyors': 'Gyorsaság',
+    'Akarat': 'Akaraterő',
 }
-
-
-
 csv_szorny_nevek = list()
 with open("szornyek.csv", 'r', encoding='utf-8') as f:
     reader = csv.DictReader(f, delimiter=',')
@@ -43,11 +44,10 @@ with open("szornyek.csv", 'r', encoding='utf-8') as f:
 
 # with open('szornyek.csv', 'r', encoding='utf-8') as g:
 #     uj = {sor['név']}
-def olvass(reg_kif, szoveg):
-    print(reg_kif)
-    olvasas = re.compile(reg_kif)
-    talalatok = olvasas.findall(szoveg)
-    return talalatok
+def olvass(regkif, szoveg):
+    olvasas = re.compile(regkif)
+    talalatok = olvasas.search(szoveg)
+    return talalatok.groups()
 
 def keress(csv_fajl, kulcs, ertek):
     with open(csv_fajl, 'r', encoding='utf-8') as c:
@@ -56,8 +56,7 @@ def keress(csv_fajl, kulcs, ertek):
             if sor[kulcs] == ertek:
                 return sor
 
-ujsor = keress("meretnovekedes.csv","uj_meret","Nagy")
-print(ujsor)
+
 class Tulajdonsag(object):
 
     def __init__(self, rovid_nev, ertek, ideig_ertek=0, ideig_mod=0):
@@ -86,7 +85,7 @@ class Tulajdonsag(object):
 
 
 class Eletero(object):
-    def __init__(self, dobas, eletpont, alap_allokepesseg_mento):
+    def __init__(self, dobas, **kwargs):
         self.__dobas = Kocka.Dobas(dobas)
         # self._szorny_szintje = self.eletero_dobas.kocka_db
         # r = re.match(REGKIF_ELETERO, e)
@@ -142,8 +141,10 @@ class Mento:
     def __str__(self):
         return '{} mentő értéke: {}'.format(self.nev, self.pont)
 
+
 Valtozat = namedtuple('Valtozat', ['min', 'max', 'meret'])
-Fejlesztes = namedtuple('Fejlesztes',['leggyengebb_valtozat','legerosebb_valtozat'])
+Fejlesztes = namedtuple('Fejlesztes', ['leggyengebb_valtozat', 'legerosebb_valtozat'])
+
 
 class Kezdemenyezes:
     def __init__(self, modosito, eredet):
@@ -153,6 +154,7 @@ class Kezdemenyezes:
     def __str__(self):
         return '{} ({})'.format(self.modosito, self.eredet)
 
+
 class Tamadas:
     def __init__(self, szam, nev, bonusz, forma):
         self.szam = int(szam) if szam else 1
@@ -161,7 +163,12 @@ class Tamadas:
         self.forma = forma
 
     def __str__(self):
-        return '{} {} + {} {}'.format(self.szam, self.nev, self.bonusz, self.forma)
+        return '{} {} + {} {}'.format(
+            self.szam,
+            self.nev,
+            self.bonusz,
+            self.forma)
+
 
 class Sebzes:
     def __init__(self, tamadas_nev, dobas, kulonleges):
@@ -169,17 +176,20 @@ class Sebzes:
         self.dobas = dobas
         self.kulonleges = kulonleges
 
+
 class Kepesseg(object):
     def __init__(self, nev):
         self.nev = nev
 class KulonlegesKepesseg(Kepesseg):
     pass
 
+
 class Jartassag(object):
     def __init__(self, nev, pont):
 
         self.nev = nev
         self.pont = pont
+
 
 class OldalEleres(object):
     def __init__(self, szelesseg, hosszusag, tav):
@@ -192,6 +202,8 @@ class OldalEleres(object):
 # OldalElteres = namedtuple('OldalElteres', 'szelesseg hosszusag tav')
 # Sebzes = namedtuple('Sebzes', 'tamadas_nev dobas kulonleges')
 
+
+
 class Leny:
     def __init__(self, **kwargs):
 
@@ -202,44 +214,44 @@ class Leny:
         self.meret = kwargs['meret']
         self.tipus = kwargs['tipus']
         self.tipus_modosito = kwargs['tipus_modosito'] if kwargs['tipus_modosito'] else ''
-        #kulcs = rövid név, érték = új tulajdonság(rövid név, hosszú név, pont)
+        # kulcs = rövid név, érték = új tulajdonság(rövid név, hosszú név, pont)
         self.tulajdonsagok = [Tulajdonsag(**t.groupdict()) for t in re.finditer(REGKIF_TULAJDONSAGOK, kwargs['tulajdonsagok'])]
+        print(re.search(REGKIF_ELETERO, kwargs['eletero_dobas']).groupdict())
+        print(self.tulajdonsagok[2].ertek)
+        self.eletero = Eletero(
+            # *olvass(REGKIF_ELETERO, kwargs['eletero_dobas']),
+            self.tulajdonsagok[2].ertek,
+            **re.search(REGKIF_ELETERO, kwargs['eletero_dobas']).groupdict(),
+            )
 
-        self.eletero =  Eletero(*re.match(REGKIF_ELETERO, kwargs['eletero_dobas']).groups(), self.tulajdonsagok[2])
-
+        print(olvass(REGKIF_ELETERO, kwargs['eletero_dobas']))
         self.kezdemenyezes = Kezdemenyezes(*re.match(REGKIF_KEZDEMENYEZES, kwargs['kezdemenyezes']).groups())
-        # self.kezdemenyezes = Kezdemenyezes(**re.search(REGKIF_KEZDEMENYEZES,kwargs['kezdemenyezes']).groupdict())
+
         self.vf = Vf(**re.match(REGKIF_VF, kwargs['vf']).groupdict())
         # self.fejlesztes = Fejlesztes(self.tipus)
         self.mentok = [Mento(**m.groupdict()) for m in re.finditer(REGKIF_MENTOK, kwargs['mentok'])]
-
-        # print(re.findall(r"(\d+)-(\d+) ÉK \((\S+)\)",kwargs['fejlesztes']))
-
-        # self.fejlesztes = Fejlesztes(*re.match(r"(\d+)-(\d+) ÉK \((\S+)\)",kwargs['fejlesztes']).groups())
         print(kwargs['fejlesztes'].split(', '))
         self.jartassagok = [Jartassag(*j.groups()) for j in re.finditer(REGKIF_JARTASSAGOK, kwargs['jartassagok'])]
         # self.jartassagok = [Jartassag(*j.groups()) for j in re.finditer(REGKIF_JARTASSAGOK, kwargs['jartassagok'])]
-
         self.kepessegek = kwargs['kepessegek'].split(', ')
-
         self.kihivasi_ertek = int(kwargs['kihivasi_ertek'])
         self.kulonleges_tamadasok = (str.capitalize(kt) for kt in kwargs['kulonleges_tamadasok'].split(', '))
         self.kulonleges_kepessegek = (str.capitalize(kk) for kk in kwargs['kulonleges_kepessegek'].split(', '))
-
-
-        self.oldal_eleres = OldalEleres(*re.match(REGKIF_OLDAL_ELERES, kwargs['oldal_eleres']).groups())
+        # self.oldal_eleres = OldalEleres(*re.match(REGKIF_OLDAL_ELERES, kwargs['oldal_eleres']).groups())
+        self.oldal_eleres = OldalEleres(*olvass(REGKIF_OLDAL_ELERES, kwargs['oldal_eleres']))
 
         self.tamadasok = [Tamadas(**t.groupdict()) for t in re.finditer(REGKIF_TAMADAS, kwargs['tamadasok'])]
-        print(re.match(REGKIF_SEBZES, kwargs['sebzes']).groups())
+        # print(re.match(REGKIF_SEBZES, kwargs['sebzes']).groups())
         # self.sebzes = Sebzes(*re.match(REGKIF_SEBZES, kwargs['sebzes']).groups())
 
+
 talalat = keress('szornyek.csv', 'nev', 'Aboleth')
-l = Leny(**talalat)
-print(l.eletero.eletpont)
-print(l.eletero.szorny_szintje)
-l.eletero.dobas = Kocka.Dobas("10d6+3")
-print(l.eletero.eletpont)
-print(l.eletero.szorny_szintje)
+leny = Leny(**talalat)
+print(leny.eletero.eletpont)
+print(leny.eletero.szorny_szintje)
+leny.eletero.dobas = Kocka.Dobas("10d6+3")
+print(leny.eletero.eletpont)
+print(leny.eletero.szorny_szintje)
 # def toltds_be(esemeny):
 #     # mezo_tul.config(state = 'enabled')
 #     for gomb in keret_tulajdonsagok.winfo_children():
