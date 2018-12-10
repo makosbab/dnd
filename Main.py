@@ -13,9 +13,6 @@ import re
 # from tkinter import Tk, RIGHT, BOTH, RAISED
 # from tkinter.ttk import Frame, Button, Style
 
-
-print(f.split(' ') for f in "Erő 26, Ügy 12, Áll 20, Int 15, Böl 17, Kar 17".split(", "))
-
 REGKIF_KTAM = r'(\w+)'
 REG_TAMADAS = r'(\w+) ([\+|\-]\d+) kh.'
 REGKIF_DOBAS = r'(\d+)d(\d{2,3|4|6|8|10|20|100})(x(\d)+)?((\+|\-)\d+)'
@@ -218,11 +215,11 @@ class Leny:
         self.tulajdonsagok = [Tulajdonsag(**t.groupdict()) for t in re.finditer(REGKIF_TULAJDONSAGOK, kwargs['tulajdonsagok'])]
         print(re.search(REGKIF_ELETERO, kwargs['eletero_dobas']).groupdict())
         print(self.tulajdonsagok[2].ertek)
-        self.eletero = Eletero(
-            # *olvass(REGKIF_ELETERO, kwargs['eletero_dobas']),
-            self.tulajdonsagok[2].ertek,
-            **re.search(REGKIF_ELETERO, kwargs['eletero_dobas']).groupdict(),
-            )
+        # self.eletero = Eletero(
+        #     # *olvass(REGKIF_ELETERO, kwargs['eletero_dobas']),
+        #     self.tulajdonsagok[2].ertek,
+        #     **re.search(REGKIF_ELETERO, kwargs['eletero_dobas']).groupdict(),
+        #     )
 
         print(olvass(REGKIF_ELETERO, kwargs['eletero_dobas']))
         self.kezdemenyezes = Kezdemenyezes(*re.match(REGKIF_KEZDEMENYEZES, kwargs['kezdemenyezes']).groups())
@@ -246,12 +243,21 @@ class Leny:
 
 
 talalat = keress('szornyek.csv', 'nev', 'Aboleth')
-leny = Leny(**talalat)
-print(leny.eletero.eletpont)
-print(leny.eletero.szorny_szintje)
-leny.eletero.dobas = Kocka.Dobas("10d6+3")
-print(leny.eletero.eletpont)
-print(leny.eletero.szorny_szintje)
+# leny = Leny(**talalat)
+print(talalat)
+def darabol(**kwargs):
+
+    vf = re.match(REGKIF_VF, kwargs['vf']).groupdict()
+    kwargs['vf'] = 10
+    kwargs['tamadasok'] = re.finditer(REGKIF_TAMADAS, kwargs['tamadasok'])
+
+darabol(**talalat)
+print(talalat)
+# print(leny.eletero.eletpont)
+# print(leny.eletero.szorny_szintje)
+# leny.eletero.dobas = Kocka.Dobas("10d6+3")
+# print(leny.eletero.eletpont)
+# print(leny.eletero.szorny_szintje)
 # def toltds_be(esemeny):
 #     # mezo_tul.config(state = 'enabled')
 #     for gomb in keret_tulajdonsagok.winfo_children():
