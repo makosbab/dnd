@@ -221,7 +221,7 @@ class Leny:
         #     **re.search(REGKIF_ELETERO, kwargs['eletero_dobas']).groupdict(),
         #     )
 
-        print(olvass(REGKIF_ELETERO, kwargs['eletero_dobas']))
+        # print(olvass(REGKIF_ELETERO, kwargs['eletero_dobas']))
         self.kezdemenyezes = Kezdemenyezes(*re.match(REGKIF_KEZDEMENYEZES, kwargs['kezdemenyezes']).groups())
 
         self.vf = Vf(**re.match(REGKIF_VF, kwargs['vf']).groupdict())
@@ -249,6 +249,7 @@ def tisztit(**kwargs):
     token['tamadasok'] = re.finditer(REGKIF_TAMADAS, kwargs['tamadasok'])
     token['tipus_modosito'] = kwargs['tipus_modosito']
     token['tulajdonsagok'] = [Tulajdonsag(**t.groupdict()) for t in re.finditer(REGKIF_TULAJDONSAGOK, kwargs['tulajdonsagok'])]
+
     return token
 
 leny = Leny(**tisztit(**talalat))
