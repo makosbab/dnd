@@ -207,14 +207,14 @@ class Leny:
         self.hord_fegyvert = False
         self.van_pajzsa = False
         self.van_vertezete = False
-        self.nev = kwargs['nev']
-        self.meret = kwargs['meret']
-        self.tipus = kwargs['tipus']
-        self.tipus_modosito = kwargs['tipus_modosito'] if kwargs['tipus_modosito'] else ''
+        # self.nev = kwargs['nev']
+        # self.meret = kwargs['meret']
+        # self.tipus = kwargs['tipus']
+        # self.tipus_modosito = kwargs['tipus_modosito'] if kwargs['tipus_modosito'] else ''
         # kulcs = rövid név, érték = új tulajdonság(rövid név, hosszú név, pont)
-        self.tulajdonsagok = [Tulajdonsag(**t.groupdict()) for t in re.finditer(REGKIF_TULAJDONSAGOK, kwargs['tulajdonsagok'])]
-        print(re.search(REGKIF_ELETERO, kwargs['eletero_dobas']).groupdict())
-        print(self.tulajdonsagok[2].ertek)
+        # self.tulajdonsagok = [Tulajdonsag(**t.groupdict()) for t in re.finditer(REGKIF_TULAJDONSAGOK, kwargs['tulajdonsagok'])]
+        # print(re.search(REGKIF_ELETERO, kwargs['eletero_dobas']).groupdict())
+        # print(self.tulajdonsagok[2].ertek)
         # self.eletero = Eletero(
         #     # *olvass(REGKIF_ELETERO, kwargs['eletero_dobas']),
         #     self.tulajdonsagok[2].ertek,
@@ -234,26 +234,26 @@ class Leny:
         self.kihivasi_ertek = int(kwargs['kihivasi_ertek'])
         self.kulonleges_tamadasok = (str.capitalize(kt) for kt in kwargs['kulonleges_tamadasok'].split(', '))
         self.kulonleges_kepessegek = (str.capitalize(kk) for kk in kwargs['kulonleges_kepessegek'].split(', '))
-        # self.oldal_eleres = OldalEleres(*re.match(REGKIF_OLDAL_ELERES, kwargs['oldal_eleres']).groups())
         self.oldal_eleres = OldalEleres(*olvass(REGKIF_OLDAL_ELERES, kwargs['oldal_eleres']))
 
         self.tamadasok = [Tamadas(**t.groupdict()) for t in re.finditer(REGKIF_TAMADAS, kwargs['tamadasok'])]
-        # print(re.match(REGKIF_SEBZES, kwargs['sebzes']).groups())
-        # self.sebzes = Sebzes(*re.match(REGKIF_SEBZES, kwargs['sebzes']).groups())
 
 
 talalat = keress('szornyek.csv', 'nev', 'Aboleth')
-# leny = Leny(**talalat)
-print(talalat)
-def darabol(**kwargs):
+def tisztit(**kwargs):
+    token = {}
+    token['nev'] = kwargs['nev']
+    token['meret'] = kwargs['meret']
+    token['tipus'] = kwargs['tipus']
+    token['vf'] = re.match(REGKIF_VF, kwargs['vf']).groupdict()
+    token['tamadasok'] = re.finditer(REGKIF_TAMADAS, kwargs['tamadasok'])
+    token['tipus_modosito'] = kwargs['tipus_modosito']
+    token['tulajdonsagok'] = [Tulajdonsag(**t.groupdict()) for t in re.finditer(REGKIF_TULAJDONSAGOK, kwargs['tulajdonsagok'])]
+    return token
 
-    vf = re.match(REGKIF_VF, kwargs['vf']).groupdict()
-    print(re.finditer(REGKIF_TAMADAS, kwargs['tamadasok']))
-    kwargs['vf'] = vf
-    kwargs['tamadasok'] = re.finditer(REGKIF_TAMADAS, kwargs['tamadasok'])
-
-darabol(**talalat)
+leny = Leny(**tisztit(**talalat))
 print(talalat)
+print(leny['nev'])
 # print(leny.eletero.eletpont)
 # print(leny.eletero.szorny_szintje)
 # leny.eletero.dobas = Kocka.Dobas("10d6+3")
