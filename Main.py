@@ -248,7 +248,8 @@ print(talalat)
 def darabol(**kwargs):
 
     vf = re.match(REGKIF_VF, kwargs['vf']).groupdict()
-    kwargs['vf'] = 10
+    print(re.finditer(REGKIF_TAMADAS, kwargs['tamadasok']))
+    kwargs['vf'] = vf
     kwargs['tamadasok'] = re.finditer(REGKIF_TAMADAS, kwargs['tamadasok'])
 
 darabol(**talalat)
