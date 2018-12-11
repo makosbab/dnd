@@ -40,10 +40,7 @@ with open("szornyek.csv", 'r', encoding='utf-8') as f:
 
 # with open('szornyek.csv', 'r', encoding='utf-8') as g:
 #     uj = {sor['név']}
-def olvass(regkif, szoveg):
-    olvasas = re.compile(regkif)
-    talalatok = olvasas.search(szoveg)
-    return talalatok.groups()
+
 
 def keress(csv_fajl, kulcs, ertek):
     with open(csv_fajl, 'r', encoding='utf-8') as c:
@@ -81,38 +78,38 @@ class Tulajdonsag(object):
 
 
 class Eletero(object):
-    def __init__(self, dobas, **kwargs):
-        self.__dobas = Kocka.Dobas(dobas)
+    def __init__(self, **kwargs):
+        self.__dobas = Kocka.Dobas(kwargs['dobas'])
         # self._szorny_szintje = self.eletero_dobas.kocka_db
         # r = re.match(REGKIF_ELETERO, e)
-        self.__eletpont = eletpont
+        self.__eletpont = kwargs['eletpont']
         self.__szorny_szintje = self.__dobas.kocka_db
-        self.alap_allokepesseg_mento = alap_allokepesseg_mento
+        # self.alap_allokepesseg_mento = alap_allokepesseg_mento
         # self.ideig_mod = 0
 
-    @property
-    def dobas(self):
-        return self.__dobas
-
-    @dobas.setter
-    def dobas(self, uj):
-        self.__dobas = uj
-
-    @property
-    def szorny_szintje(self):
-        return self.__dobas.kocka_db
-
-    @szorny_szintje.setter
-    def szorny_szintje(self, szint):
-        self.__szorny_szintje = szint
-
-    @property
-    def eletpont(self):
-        return self.__eletpont
-
-    @eletpont.setter
-    def eletpont(self, bonusz):
-        self.__eletpont += bonusz
+    # @property
+    # def dobas(self):
+    #     return self.__dobas
+    #
+    # @dobas.setter
+    # def dobas(self, uj):
+    #     self.__dobas = uj
+    #
+    # @property
+    # def szorny_szintje(self):
+    #     return self.__dobas.kocka_db
+    #
+    # @szorny_szintje.setter
+    # def szorny_szintje(self, szint):
+    #     self.__szorny_szintje = szint
+    #
+    # @property
+    # def eletpont(self):
+    #     return self.__eletpont
+    #
+    # @eletpont.setter
+    # def eletpont(self, bonusz):
+    #     self.__eletpont += bonusz
 
 
 class Vf:
@@ -133,6 +130,10 @@ class Mento:
         self.rovid_nev = rovid_nev
         self.pont = pont
         self.nev = MENTO_NEVEK[self.rovid_nev]
+        self.varazslat_modosito = 0
+        self.kieg_modosito = 0
+        self.ideiglenes_modosito = 0
+        self.felteteles_modosito = 0
 
     def __str__(self):
         return '{} mentő értéke: {}'.format(self.nev, self.pont)
@@ -198,103 +199,113 @@ class OldalEleres(object):
 # OldalElteres = namedtuple('OldalElteres', 'szelesseg hosszusag tav')
 # Sebzes = namedtuple('Sebzes', 'tamadas_nev dobas kulonleges')
 
+# self.hord_fegyvert = False
+# self.van_pajzsa = False
+# self.van_vertezete = False
+# self.nev = kwargs['nev']
+# self.meret = kwargs['meret']
+# self.tipus = kwargs['tipus']
+# self.tipus_modosito = kwargs['tipus_modosito'] if kwargs['tipus_modosito'] else ''
+# kulcs = rövid név, érték = új tulajdonság(rövid név, hosszú név, pont)
+# self.tulajdonsagok = [Tulajdonsag(**t.groupdict()) for t in re.finditer(REGKIF_TULAJDONSAGOK, kwargs['tulajdonsagok'])]
+# print(re.search(REGKIF_ELETERO, kwargs['eletero_dobas']).groupdict())
+# print(self.tulajdonsagok[2].ertek)
+# self.eletero = Eletero(
+#     # *olvass(REGKIF_ELETERO, kwargs['eletero_dobas']),
+#     self.tulajdonsagok[2].ertek,
+#     **re.search(REGKIF_ELETERO, kwargs['eletero_dobas']).groupdict(),
+#     )
 
+# print(olvass(REGKIF_ELETERO, kwargs['eletero_dobas']))
+# self.kezdemenyezes = Kezdemenyezes(*re.match(REGKIF_KEZDEMENYEZES, kwargs['kezdemenyezes']).groups())
 
-class Leny:
-    def __init__(self, kwargs):
-        self.adatok = kwargs
-        # self.hord_fegyvert = False
-        # self.van_pajzsa = False
-        # self.van_vertezete = False
-        # self.nev = kwargs['nev']
-        # self.meret = kwargs['meret']
-        # self.tipus = kwargs['tipus']
-        # self.tipus_modosito = kwargs['tipus_modosito'] if kwargs['tipus_modosito'] else ''
-        # kulcs = rövid név, érték = új tulajdonság(rövid név, hosszú név, pont)
-        # self.tulajdonsagok = [Tulajdonsag(**t.groupdict()) for t in re.finditer(REGKIF_TULAJDONSAGOK, kwargs['tulajdonsagok'])]
-        # print(re.search(REGKIF_ELETERO, kwargs['eletero_dobas']).groupdict())
-        # print(self.tulajdonsagok[2].ertek)
-        # self.eletero = Eletero(
-        #     # *olvass(REGKIF_ELETERO, kwargs['eletero_dobas']),
-        #     self.tulajdonsagok[2].ertek,
-        #     **re.search(REGKIF_ELETERO, kwargs['eletero_dobas']).groupdict(),
-        #     )
+# self.vf = Vf(**re.match(REGKIF_VF, kwargs['vf']).groupdict())
+# self.fejlesztes = Fejlesztes(self.tipus)
+# self.mentok = [Mento(**m.groupdict()) for m in re.finditer(REGKIF_MENTOK, kwargs['mentok'])]
+# print(kwargs['fejlesztes'].split(', '))
+# self.jartassagok = [Jartassag(*j.groups()) for j in re.finditer(REGKIF_JARTASSAGOK, kwargs['jartassagok'])]
+# self.jartassagok = [Jartassag(*j.groups()) for j in re.finditer(REGKIF_JARTASSAGOK, kwargs['jartassagok'])]
+# self.kepessegek = kwargs['kepessegek'].split(', ')
+# self.kihivasi_ertek = int(kwargs['kihivasi_ertek'])
+# self.kulonleges_tamadasok = (str.capitalize(kt) for kt in kwargs['kulonleges_tamadasok'].split(', '))
+# self.kulonleges_kepessegek = (str.capitalize(kk) for kk in kwargs['kulonleges_kepessegek'].split(', '))
 
-        # print(olvass(REGKIF_ELETERO, kwargs['eletero_dobas']))
-        # self.kezdemenyezes = Kezdemenyezes(*re.match(REGKIF_KEZDEMENYEZES, kwargs['kezdemenyezes']).groups())
-
-        # self.vf = Vf(**re.match(REGKIF_VF, kwargs['vf']).groupdict())
-        # self.fejlesztes = Fejlesztes(self.tipus)
-        # self.mentok = [Mento(**m.groupdict()) for m in re.finditer(REGKIF_MENTOK, kwargs['mentok'])]
-        # print(kwargs['fejlesztes'].split(', '))
-        # self.jartassagok = [Jartassag(*j.groups()) for j in re.finditer(REGKIF_JARTASSAGOK, kwargs['jartassagok'])]
-        # self.jartassagok = [Jartassag(*j.groups()) for j in re.finditer(REGKIF_JARTASSAGOK, kwargs['jartassagok'])]
-        # self.kepessegek = kwargs['kepessegek'].split(', ')
-        # self.kihivasi_ertek = int(kwargs['kihivasi_ertek'])
-        # self.kulonleges_tamadasok = (str.capitalize(kt) for kt in kwargs['kulonleges_tamadasok'].split(', '))
-        # self.kulonleges_kepessegek = (str.capitalize(kk) for kk in kwargs['kulonleges_kepessegek'].split(', '))
-
-        # self.tamadasok = [Tamadas(**t.groupdict()) for t in re.finditer(REGKIF_TAMADAS, kwargs['tamadasok'])]
+# self.tamadasok = [Tamadas(**t.groupdict()) for t in re.finditer(REGKIF_TAMADAS, kwargs['tamadasok'])]
 
 
 talalat = keress('szornyek.csv', 'nev', 'Aboleth')
 
-def tisztit(**kwargs):
+def tisztit(**sor):
+
+    def olvass(regkif, szoveg):
+        olvasas = re.compile(regkif)
+        talalatok = olvasas.search(szoveg)
+        return talalatok.groups()
 
     def listaz(regex, kulcs):
 
         return list(
-            t.groupdict() for t in re.finditer(
+            i.groupdict() for i in re.finditer(
                 regex,
-                kwargs[kulcs]
-                )
-            )
-
-    def listaz_obj(regex, kulcs):
-
-        return list(
-            t.groupdict() for t in re.finditer(
-                regex,
-                kwargs[kulcs]
+                sor[kulcs]
                 )
             )
 
     def szotaraz(regex, kulcs):
-        return re.match(regex, kwargs[kulcs]).groupdict()
+        return re.match(regex, sor[kulcs]).groupdict()
 
-    def tordel(kulcs, tordeles):
+    def tordel(kulcs, kar):
         return list(
-            str.capitalize(kt) for kt in kwargs[kulcs].split(tordeles)
+            str.capitalize(i) for i in sor[kulcs].split(kar)
             )
-
+    # self.eletero = Eletero(
+    #     # *olvass(REGKIF_ELETERO, kwargs['eletero_dobas']),
+    #     self.tulajdonsagok[2].ertek,
+    #     **re.search(REGKIF_ELETERO, kwargs['eletero_dobas']).groupdict(),
+    #     )
     token = {}
-    token['nev'] = str.strip(kwargs['nev'])
-    token['meret'] = str.strip(kwargs['meret'])
-    token['tipus'] = str.strip(kwargs['tipus'])
+    token['nev'] = str.strip(sor['nev'])
+    token['meret'] = str.strip(sor['meret'])
+    token['tipus'] = str.strip(sor['tipus'])
     token['vf'] = Vf(**szotaraz(REGKIF_VF, 'vf'))
     token['tamadasok'] = listaz(REGKIF_TAMADAS, 'tamadasok')
-    token['tipus_modosito'] = str.capitalize(kwargs['tipus_modosito'])
-    token['tulajdonsagok'] = listaz(REGKIF_TULAJDONSAGOK, 'tulajdonsagok')
+    token['tipus_modosito'] = str.capitalize(sor['tipus_modosito'])
     token['kezdemenyezes'] = listaz(REGKIF_KEZDEMENYEZES, 'kezdemenyezes')
-    token['mentok'] = listaz(REGKIF_MENTOK, 'mentok')
+    token['mentok'] = list(
+        Mento(**m) for m in listaz(REGKIF_MENTOK, 'mentok')
+    )
+    token['eletero_dobas'] = szotaraz(REGKIF_ELETERO, 'eletero_dobas')
     token['jartassagok'] = listaz(REGKIF_MENTOK, 'jartassagok')
     token['kepessegek'] = tordel('kepessegek', ', ')
-    token['kihivasi_ertek'] = int(kwargs['kihivasi_ertek'])
+    token['kihivasi_ertek'] = int(sor['kihivasi_ertek'])
     token['kulonleges_tamadasok'] = tordel('kulonleges_tamadasok', ', ')
     token['kulonleges_kepessegek'] = tordel('kulonleges_kepessegek', ', ')
     token['oldal_eleres'] = szotaraz(REGKIF_OLDAL_ELERES, 'oldal_eleres')
     token['tamadasok'] = listaz(REGKIF_TAMADAS, 'tamadasok')
+    token['tulajdonsagok'] = list(
+        Tulajdonsag(**t) for t in listaz(REGKIF_TULAJDONSAGOK, 'tulajdonsagok')
+    )
+    # Valtozat = namedtuple('Valtozat', ['min', 'max', 'meret'])
+    # Fejlesztes = namedtuple('Fejlesztes', ['leggyengebb_valtozat', 'legerosebb_valtozat'])
+    token['fejlesztes'] = Fejlesztes(*re.findall(r'(\d+)-(\d+) ÉK \((\S+)\)', sor['fejlesztes']))
+    print(token['fejlesztes'].leggyengebb_valtozat[1])
     return token
 
 leny = tisztit(**talalat)
 leny['hord_fegyvert'] = False
 leny['van_pajzsa'] = False
 leny['van_vertezete'] = False
-print(leny['jartassagok'])
-print(leny['nev'])
+print(leny['oldal_eleres'])
+print(leny['tamadasok'])
 print(leny['tulajdonsagok'])
-jleny = Leny(tisztit(**talalat))
-print(jleny.adatok['oldal_eleres'])
+print(leny['tamadasok'])
+print(leny['eletero_dobas'])
+
+
+def fejlessz(szorny):
+    pass
+
+
 # print(leny.eletero.eletpont)
 # print(leny.eletero.szorny_szintje)
 # leny.eletero.dobas = Kocka.Dobas("10d6+3")
