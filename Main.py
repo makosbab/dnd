@@ -26,6 +26,7 @@ REGKIF_ELETERO = r"(?P<dobas>\d?d\d+\+\d+) (?:\((?P<eletpont>\d+) ép\))"
 REGKIF_KEZDEMENYEZES = r'(?P<modosito>\+\d+) \((?P<eredet>\w+)\)'
 REGKIF_TAMADAS = r'(?P<szam>\d+) (?P<nev>[\w\s]+) (?P<bonusz>\+\d+) (?P<forma>\w+.)'
 REGKIF_OLDAL_ELERES = r'(?P<szelesseg>\d+) x (?P<hosszusag>\d+) \/ (?P<tav>.+)'
+REGKIF_FEJLESZTES = r'(\d+)-(\d+) ÉK \((\S+)\)'
 MENTO_NEVEK = {
     'Szív': 'Szívósság',
     'Gyors': 'Gyorsaság',
@@ -287,8 +288,12 @@ def tisztit(**sor):
     )
     # Valtozat = namedtuple('Valtozat', ['min', 'max', 'meret'])
     # Fejlesztes = namedtuple('Fejlesztes', ['leggyengebb_valtozat', 'legerosebb_valtozat'])
-    token['fejlesztes'] = Fejlesztes(*re.findall(r'(\d+)-(\d+) ÉK \((\S+)\)', sor['fejlesztes']))
-    print(token['fejlesztes'].leggyengebb_valtozat[1])
+    print(re.findall(REGKIF_FEJLESZTES, sor['fejlesztes']))
+    token['fejlesztes'] = Fejlesztes(
+        Valtozat(*re.findall(REGKIF_FEJLESZTES, sor['fejlesztes'])[0]),
+        Valtozat(*re.findall(REGKIF_FEJLESZTES, sor['fejlesztes'])[1])
+        )
+    print(token['fejlesztes'].leggyengebb_valtozat.max)
     return token
 
 leny = tisztit(**talalat)
