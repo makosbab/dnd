@@ -22,11 +22,10 @@ REGKIF_JARTASSAGOK = r'(?P<nev>\w+)+ (?P<pont>[\+|\-]\d+)'
 REGKIF_MENTOK = r'(?P<rovid_nev>\w+)+ (?P<pont>[\+|\-]\d+)'
 REGKIF_TULAJDONSAGOK = r'(?P<rovid_nev>\w+)+ (?P<ertek>\d+|\-)'
 REGKIF_VF = r'(\d+) \((?P<meret_mod>\+|\-\d+) termet, (?P<tul_mod>\+\d+) Ügy, (?P<term_mod>\+\d+) természetes\)'
-# self, dobas, eletpont, alap_allokepesseg_mento
 REGKIF_ELETERO = r"(?P<dobas>\d?d\d+\+\d+) (?:\((?P<eletpont>\d+) ép\))"
 REGKIF_KEZDEMENYEZES = r'(?P<modosito>\+\d+) \((?P<eredet>\w+)\)'
 REGKIF_TAMADAS = r'(?P<szam>\d+) (?P<nev>[\w\s]+) (?P<bonusz>\+\d+) (?P<forma>\w+.)'
-REGKIF_OLDAL_ELERES = r'(\d+) x (\d+) \/ (.+)'
+REGKIF_OLDAL_ELERES = r'(?P<szelesseg>\d+) x (?P<hosszusag>\d+) \/ (?P<tav>.+)'
 MENTO_NEVEK = {
     'Szív': 'Szívósság',
     'Gyors': 'Gyorsaság',
@@ -202,11 +201,11 @@ class OldalEleres(object):
 
 
 class Leny:
-    def __init__(self, **kwargs):
-
-        self.hord_fegyvert = False
-        self.van_pajzsa = False
-        self.van_vertezete = False
+    def __init__(self, kwargs):
+        self.adatok = kwargs
+        # self.hord_fegyvert = False
+        # self.van_pajzsa = False
+        # self.van_vertezete = False
         # self.nev = kwargs['nev']
         # self.meret = kwargs['meret']
         # self.tipus = kwargs['tipus']
@@ -222,39 +221,80 @@ class Leny:
         #     )
 
         # print(olvass(REGKIF_ELETERO, kwargs['eletero_dobas']))
-        self.kezdemenyezes = Kezdemenyezes(*re.match(REGKIF_KEZDEMENYEZES, kwargs['kezdemenyezes']).groups())
+        # self.kezdemenyezes = Kezdemenyezes(*re.match(REGKIF_KEZDEMENYEZES, kwargs['kezdemenyezes']).groups())
 
-        self.vf = Vf(**re.match(REGKIF_VF, kwargs['vf']).groupdict())
+        # self.vf = Vf(**re.match(REGKIF_VF, kwargs['vf']).groupdict())
         # self.fejlesztes = Fejlesztes(self.tipus)
-        self.mentok = [Mento(**m.groupdict()) for m in re.finditer(REGKIF_MENTOK, kwargs['mentok'])]
-        print(kwargs['fejlesztes'].split(', '))
-        self.jartassagok = [Jartassag(*j.groups()) for j in re.finditer(REGKIF_JARTASSAGOK, kwargs['jartassagok'])]
+        # self.mentok = [Mento(**m.groupdict()) for m in re.finditer(REGKIF_MENTOK, kwargs['mentok'])]
+        # print(kwargs['fejlesztes'].split(', '))
         # self.jartassagok = [Jartassag(*j.groups()) for j in re.finditer(REGKIF_JARTASSAGOK, kwargs['jartassagok'])]
-        self.kepessegek = kwargs['kepessegek'].split(', ')
-        self.kihivasi_ertek = int(kwargs['kihivasi_ertek'])
-        self.kulonleges_tamadasok = (str.capitalize(kt) for kt in kwargs['kulonleges_tamadasok'].split(', '))
-        self.kulonleges_kepessegek = (str.capitalize(kk) for kk in kwargs['kulonleges_kepessegek'].split(', '))
-        self.oldal_eleres = OldalEleres(*olvass(REGKIF_OLDAL_ELERES, kwargs['oldal_eleres']))
+        # self.jartassagok = [Jartassag(*j.groups()) for j in re.finditer(REGKIF_JARTASSAGOK, kwargs['jartassagok'])]
+        # self.kepessegek = kwargs['kepessegek'].split(', ')
+        # self.kihivasi_ertek = int(kwargs['kihivasi_ertek'])
+        # self.kulonleges_tamadasok = (str.capitalize(kt) for kt in kwargs['kulonleges_tamadasok'].split(', '))
+        # self.kulonleges_kepessegek = (str.capitalize(kk) for kk in kwargs['kulonleges_kepessegek'].split(', '))
 
-        self.tamadasok = [Tamadas(**t.groupdict()) for t in re.finditer(REGKIF_TAMADAS, kwargs['tamadasok'])]
+        # self.tamadasok = [Tamadas(**t.groupdict()) for t in re.finditer(REGKIF_TAMADAS, kwargs['tamadasok'])]
 
 
 talalat = keress('szornyek.csv', 'nev', 'Aboleth')
-def tisztit(**kwargs):
-    token = {}
-    token['nev'] = kwargs['nev']
-    token['meret'] = kwargs['meret']
-    token['tipus'] = kwargs['tipus']
-    token['vf'] = re.match(REGKIF_VF, kwargs['vf']).groupdict()
-    token['tamadasok'] = re.finditer(REGKIF_TAMADAS, kwargs['tamadasok'])
-    token['tipus_modosito'] = kwargs['tipus_modosito']
-    token['tulajdonsagok'] = [Tulajdonsag(**t.groupdict()) for t in re.finditer(REGKIF_TULAJDONSAGOK, kwargs['tulajdonsagok'])]
 
+def tisztit(**kwargs):
+
+    def listaz(regex, kulcs):
+
+        return list(
+            t.groupdict() for t in re.finditer(
+                regex,
+                kwargs[kulcs]
+                )
+            )
+
+    def listaz_obj(regex, kulcs):
+
+        return list(
+            t.groupdict() for t in re.finditer(
+                regex,
+                kwargs[kulcs]
+                )
+            )
+
+    def szotaraz(regex, kulcs):
+        return re.match(regex, kwargs[kulcs]).groupdict()
+
+    def tordel(kulcs, tordeles):
+        return list(
+            str.capitalize(kt) for kt in kwargs[kulcs].split(tordeles)
+            )
+
+    token = {}
+    token['nev'] = str.strip(kwargs['nev'])
+    token['meret'] = str.strip(kwargs['meret'])
+    token['tipus'] = str.strip(kwargs['tipus'])
+    token['vf'] = Vf(**szotaraz(REGKIF_VF, 'vf'))
+    token['tamadasok'] = listaz(REGKIF_TAMADAS, 'tamadasok')
+    token['tipus_modosito'] = str.capitalize(kwargs['tipus_modosito'])
+    token['tulajdonsagok'] = listaz(REGKIF_TULAJDONSAGOK, 'tulajdonsagok')
+    token['kezdemenyezes'] = listaz(REGKIF_KEZDEMENYEZES, 'kezdemenyezes')
+    token['mentok'] = listaz(REGKIF_MENTOK, 'mentok')
+    token['jartassagok'] = listaz(REGKIF_MENTOK, 'jartassagok')
+    token['kepessegek'] = tordel('kepessegek', ', ')
+    token['kihivasi_ertek'] = int(kwargs['kihivasi_ertek'])
+    token['kulonleges_tamadasok'] = tordel('kulonleges_tamadasok', ', ')
+    token['kulonleges_kepessegek'] = tordel('kulonleges_kepessegek', ', ')
+    token['oldal_eleres'] = szotaraz(REGKIF_OLDAL_ELERES, 'oldal_eleres')
+    token['tamadasok'] = listaz(REGKIF_TAMADAS, 'tamadasok')
     return token
 
-leny = Leny(**tisztit(**talalat))
-print(talalat)
+leny = tisztit(**talalat)
+leny['hord_fegyvert'] = False
+leny['van_pajzsa'] = False
+leny['van_vertezete'] = False
+print(leny['jartassagok'])
 print(leny['nev'])
+print(leny['tulajdonsagok'])
+jleny = Leny(tisztit(**talalat))
+print(jleny.adatok['oldal_eleres'])
 # print(leny.eletero.eletpont)
 # print(leny.eletero.szorny_szintje)
 # leny.eletero.dobas = Kocka.Dobas("10d6+3")
