@@ -288,30 +288,30 @@ def tisztit(**sor):
     )
     # Valtozat = namedtuple('Valtozat', ['min', 'max', 'meret'])
     # Fejlesztes = namedtuple('Fejlesztes', ['leggyengebb_valtozat', 'legerosebb_valtozat'])
-    print(re.findall(REGKIF_FEJLESZTES, sor['fejlesztes']))
 
     token['fejlesztes'] = listaz(REGKIF_FEJLESZTES, 'fejlesztes')
-    
+
         # Valtozat(*re.findall(REGKIF_FEJLESZTES, sor['fejlesztes'])[0]),
         # Valtozat(*re.findall(REGKIF_FEJLESZTES, sor['fejlesztes'])[1])
 
-    print(token['fejlesztes'])
     return token
 
 leny = tisztit(**talalat)
 leny['hord_fegyvert'] = False
 leny['van_pajzsa'] = False
 leny['van_vertezete'] = False
-print(leny['oldal_eleres'])
-print(leny['tamadasok'])
-print(leny['tulajdonsagok'])
-print(leny['tamadasok'])
-print(leny['eletero_dobas'])
 
 
 def fejlessz(szorny):
-    pass
+    print(szorny['oldal_eleres'])
+    print(szorny['tamadasok'])
+    print(szorny['tulajdonsagok'])
+    print(szorny['tamadasok'])
+    print(szorny['eletero_dobas'])
 
+    print(szorny['eletero_dobas'])
+
+fejlessz(leny)
 
 # print(leny.eletero.eletpont)
 # print(leny.eletero.szorny_szintje)
