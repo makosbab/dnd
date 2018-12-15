@@ -6,6 +6,9 @@ Created on 2018. okt. 3.
 '''
 import re
 import random
+from collections import namedtuple
+
+REGKIF_DOBAS = r'(?P<kocka_db>\d+)d(?P<kocka_oldalak>\d{2|3|4|6|8|10|20|100})(?:x(?P<szorzo>\d)+)?(?P<bonusz>\+|\-\d+)?'
 class Kocka:
 
     def __init__ (self, oldalak, szazalekos = False, tizes = False):
@@ -27,39 +30,42 @@ class Kocka:
     def __str__(self):
         return 'Kocka típusa: d{}, értékei: {}'.format(self.kocka_oldalak, self.kocka_ertekek)
 
+
+Dobas2 = namedtuple("Dob", ("kocka_db", "kocka_oldalak", "szorzo", "bonusz"))
+
+def dobj(dobas):
+    talalat = re.match(REGKIF_DOBAS, dobas).groupdict()
+    dobas = Dobas2(**talalat)
+
+    if dobas.kocka_db == 1:
+        kocka = Kocka(dobas['kocka_oldalak'])
+        return random.choice(kocka.kocka_ertekek)
+
 class Dobas:
     #(\d)?d(\d{1,2})([\s]?(\+|\-)[\s]?(\d*))?(x(\d))?(\+|\-)(\d*)
     #(\d)?d(\d{1,2})(x?(\d)+)?((\+|\-)(\d*))?
-    REGKIF = r'(\d+)d(\d{2,3|4|6|8|10|20|100})(x(\d)+)?((\+|\-)\d+)'
+    
 
     def __init__ (self, dobas='', kocka = None):
-        self.kocka_oldalak = 0
-        self.bonusz = 0
+        talalat = re.match(REGKIF_DOBAS, dobas).groupdict()
+        # self.kocka_oldalak = 0
+        # self.bonusz = 0
         self.dobas_eredmeny = 0
         self.dobott_ertekek = []
         self.pohar = []
-        if dobas:
-            self.dobando = dobas
-        self.bonusz_elojel = ""
-        self.szorzo = 0
+        # if dobas:
+        #     self.dobando = dobas
+        # self.bonusz_elojel = ""
+        # self.szorzo = 0
         self.dobas_szorzo = 1
-        talalat = re.match(self.REGKIF,self.dobando)
+        
+        self.adatok = {}
         if(talalat):
-            if not talalat.group(1) or int(talalat.group(1)) == 0:
-                self.kocka_db = 1
-            else:
-                self.kocka_db = int(talalat.group(1))
+            self.adatok = talalat
 
-            self.kocka_oldalak = int(talalat.group(2))
-            if talalat.group(4):
-                self.dobas_szorzo = int(talalat.group(4))
-            if talalat.group(5):
-                self.bonusz = talalat.group(5)
-        i = 0
-        while i < self.kocka_db:
-           kocka = Kocka(self.kocka_oldalak)
+        for i in self.adatok['kocka_oldalak']:
+           kocka = Kocka(self.adatok['kocka_oldalak'])
            self.pohar.append(kocka)
-           i += 1
 
         for kocka in self.pohar:
             dobott_ertek = random.choice(kocka.kocka_ertekek)

@@ -81,13 +81,15 @@ class Tulajdonsag(object):
 class Eletero(object):
     def __init__(self, **kwargs):
         self.__dobas = Kocka.Dobas(kwargs['dobas'])
-        # self._szorny_szintje = self.eletero_dobas.kocka_db
-        # r = re.match(REGKIF_ELETERO, e)
         self.__eletpont = kwargs['eletpont']
-        self.__szorny_szintje = self.__dobas.kocka_db
+
         # self.alap_allokepesseg_mento = alap_allokepesseg_mento
         # self.ideig_mod = 0
 
+    @property
+    def szorny_szintje(self):
+        return self.__dobas.kocka_db
+    #
     # @property
     # def dobas(self):
     #     return self.__dobas
@@ -276,6 +278,7 @@ def tisztit(**sor):
         Mento(**m) for m in listaz(REGKIF_MENTOK, 'mentok')
     )
     token['eletero_dobas'] = szotaraz(REGKIF_ELETERO, 'eletero_dobas')
+    token['eletpont'] = int(token['eletero_dobas']['eletpont'])
     token['jartassagok'] = listaz(REGKIF_MENTOK, 'jartassagok')
     token['kepessegek'] = tordel('kepessegek', ', ')
     token['kihivasi_ertek'] = int(sor['kihivasi_ertek'])
@@ -303,13 +306,22 @@ leny['van_vertezete'] = False
 
 
 def fejlessz(szorny):
+
+    def noveld_eletpontot(szorny):
+        elet_kocka = keress('fejlesztes.csv', 'tipus', szorny['tipus'])['eletero_dobas']
+        dobas = Kocka.dobj(elet_kocka)
+        szorny['eletpont'] += dobas
+        print(dobas)
+
     print(szorny['oldal_eleres'])
     print(szorny['tamadasok'])
     print(szorny['tulajdonsagok'])
     print(szorny['tamadasok'])
     print(szorny['eletero_dobas'])
+    print(szorny['eletpont'])
+    noveld_eletpontot(szorny)
+    print(szorny['eletpont'])
 
-    print(szorny['eletero_dobas'])
 
 fejlessz(leny)
 

@@ -1,18 +1,18 @@
 tipus,eletero_dobas,tamadas_bonusz,jo_mentodobas,jartassagpontok,kepessegek
-"Alakváltó",d8,0.75,"Szívósság, Gyorsaság, Akarat",1,0.25
-"Állat",d8,0.75,"Akarat","10-15",0
-"Bestia",d10,0.75,"Szívósság, Gyorsaság",1,0
-"Elementál",d8,0.75,"Föld : 'Szívósság,Víz : Szívósság, Levegő : Gyorsaság, Tűz : Gyorsaság",2,0.25
-"Élőhalott",d8,0.5,"Szívósság",2,0.25
-"Fey",d8,0.5,"Gyorsaság,Akarat",2,0
-"Féreg",d8,0.5,"Szívósság","10-13",0
-"Humanoid",d8,0.5,"Random",1,0.25
-"Humanoid szörny",d8,1,"Gyorsaság,Akarat",2,0.25
-"Külvilági",d8,1,"Szívósság,Gyorsaság,Akarat",8,0.25
-"Mágikus Bestia",d10,1,"Szívósság,Gyorsaság,Akarat",8,0.25
-"Növény",d8,1,"Szívósság",0,0
-"Ooze",d10,0.75,'',0,"Vaklátás"
-"Óriás",d8,0.75,"Szívósság",1,0.25
-"Rendellenesség",d12,0.75,"Szívósság, Gyorsaság, Akarat",1,0.25
-"Sárkány",d12,1,"Szívósság',Gyorsaság,Akarat",6,0.25
-"Szerkezet",d10,0.75,'',0,0
+"Alakváltó",1d8,0.75,"Szívósság, Gyorsaság, Akarat",1,0.25
+"Állat",1d8,0.75,"Akarat","10-15",0
+"Bestia",1d10,0.75,"Szívósság, Gyorsaság",1,0
+"Elementál",1d8,0.75,"Föld : 'Szívósság,Víz : Szívósság, Levegő : Gyorsaság, Tűz : Gyorsaság",2,0.25
+"Élőhalott",1d8,0.5,"Szívósság",2,0.25
+"Fey",1d8,0.5,"Gyorsaság,Akarat",2,0
+"Féreg",1d8,0.5,"Szívósság","10-13",0
+"Humanoid",1d8,0.5,"Random",1,0.25
+"Humanoid szörny",1d8,1,"Gyorsaság,Akarat",2,0.25
+"Külvilági",1d8,1,"Szívósság,Gyorsaság,Akarat",8,0.25
+"Mágikus Bestia",1d10,1,"Szívósság,Gyorsaság,Akarat",8,0.25
+"Növény",1d8,1,"Szívósság",0,0
+"Ooze",1d10,0.75,'',0,"Vaklátás"
+"Óriás",1d8,0.75,"Szívósság",1,0.25
+"Rendellenesség",1d8,0.75,"Szívósság, Gyorsaság, Akarat",1,0.25
+"Sárkány",1d12,1,"Szívósság',Gyorsaság,Akarat",6,0.25
+"Szerkezet",1d10,0.75,'',0,0
