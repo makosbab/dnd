@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import Kocka
+import Dobas
 
 TULAJDONSAGOK = (
 	('Erő', 'Erő'),

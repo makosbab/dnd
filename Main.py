@@ -1,7 +1,7 @@
 #!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
 import math
-import Kocka
+import Dobas
 import sys
 import csv
 import io
@@ -80,15 +80,11 @@ class Tulajdonsag(object):
 
 class Eletero(object):
     def __init__(self, **kwargs):
-        self.__dobas = Kocka.Dobas(kwargs['dobas'])
-        self.__eletpont = kwargs['eletpont']
+        self.dobas = Dobas.Dobas(kwargs['dobas'])
+        self.eletpont = kwargs['eletpont']
 
         # self.alap_allokepesseg_mento = alap_allokepesseg_mento
         # self.ideig_mod = 0
-
-    @property
-    def szorny_szintje(self):
-        return self.__dobas.kocka_db
     #
     # @property
     # def dobas(self):
@@ -279,6 +275,7 @@ def tisztit(**sor):
     )
     token['eletero_dobas'] = szotaraz(REGKIF_ELETERO, 'eletero_dobas')
     token['eletpont'] = int(token['eletero_dobas']['eletpont'])
+    token['szint'] = Dobas.Dobas(**Dobas.dobas_tisztits(token['eletero_dobas']['dobas'])).db_kocka
     token['jartassagok'] = listaz(REGKIF_MENTOK, 'jartassagok')
     token['kepessegek'] = tordel('kepessegek', ', ')
     token['kihivasi_ertek'] = int(sor['kihivasi_ertek'])
@@ -308,10 +305,11 @@ leny['van_vertezete'] = False
 def fejlessz(szorny):
 
     def noveld_eletpontot(szorny):
-        elet_kocka = keress('fejlesztes.csv', 'tipus', szorny['tipus'])['eletero_dobas']
-        dobas = Kocka.dobj(elet_kocka)
-        szorny['eletpont'] += dobas
-        print(dobas)
+        elet_kocka = keress('fejlesztes.csv', 'tipus', szorny['tipus'])['eletero_dobas']        
+        szorny['eletpont'] += Dobas.dobj(elet_kocka)
+
+    def noveld_szintet(szorny):
+        szorny['szint'] += 1
 
     print(szorny['oldal_eleres'])
     print(szorny['tamadasok'])
@@ -320,16 +318,12 @@ def fejlessz(szorny):
     print(szorny['eletero_dobas'])
     print(szorny['eletpont'])
     noveld_eletpontot(szorny)
+    print(szorny['szint'])
+    noveld_szintet(szorny)
     print(szorny['eletpont'])
-
+    print(szorny['szint'])
 
 fejlessz(leny)
-
-# print(leny.eletero.eletpont)
-# print(leny.eletero.szorny_szintje)
-# leny.eletero.dobas = Kocka.Dobas("10d6+3")
-# print(leny.eletero.eletpont)
-# print(leny.eletero.szorny_szintje)
 # def toltds_be(esemeny):
 #     # mezo_tul.config(state = 'enabled')
 #     for gomb in keret_tulajdonsagok.winfo_children():
