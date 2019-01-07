@@ -10,9 +10,14 @@ import tkinter as tk
 from tkinter import ttk
 from collections import namedtuple
 import re
+import pymongo
 # from tkinter import Tk, RIGHT, BOTH, RAISED
 # from tkinter.ttk import Frame, Button, Style
+mongo_client = pymongo.MongoClient("mongodb://localhost:27017/")
+dnd_db = mongo_client["testdb"]
+monster_collection = dnd_db["monsters"]
 
+m = monster_collection.find_one({"name" : "Aboleth"})
 
 REGKIF_KTAM = r'(\w+)'
 REG_TAMADAS = r'(\w+) ([\+|\-]\d+) kh.'
@@ -33,255 +38,278 @@ MENTO_NEVEK = {
     'Gyors': 'Gyorsaság',
     'Akarat': 'Akaraterő',
 }
-csv_szorny_nevek = list()
-with open("szornyek.csv", 'r', encoding='utf-8') as f:
-    reader = csv.DictReader(f, delimiter=',')
-    for row in reader:
-        csv_szorny_nevek.append(row['nev'])
+# csv_szorny_nevek = list()
+# with open("szornyek.csv", 'r', encoding='utf-8') as f:
+#     reader = csv.DictReader(f, delimiter=',')
+#     for row in reader:
+#         csv_szorny_nevek.append(row['nev'])
 
 
-# with open('szornyek.csv', 'r', encoding='utf-8') as g:
-#     uj = {sor['név']}
+# # with open('szornyek.csv', 'r', encoding='utf-8') as g:
+# #     uj = {sor['név']}
 
 
-def keress(csv_fajl, kulcs, ertek):
-    with open(csv_fajl, 'r', encoding='utf-8') as c:
-        csv_olvaso = csv.DictReader(c)
-        for sor in csv_olvaso:
-            if sor[kulcs] == ertek:
-                return sor
+# def keress(csv_fajl, kulcs, ertek):
+#     with open(csv_fajl, 'r', encoding='utf-8') as c:
+#         csv_olvaso = csv.DictReader(c)
+#         for sor in csv_olvaso:
+#             if sor[kulcs] == ertek:
+#                 return sor
 
 
-class Tulajdonsag(object):
+# class Tulajdonsag(object):
 
-    def __init__(self, rovid_nev, ertek, ideig_ertek=0, ideig_mod=0):
-        self.rovid_nev = rovid_nev
-        try:
-            self.ertek = int(ertek)
-        except ValueError:
-            self.ertek = 'Nincs'
-        self.ideiglenes_ertek = ideig_ertek or 0
-        self.ideiglenes_modosito = ideig_mod or 0
-    @property
-    def modosito(self):
-        try:
-            return math.floor((self.ertek - 10 ) / 2)
-        except TypeError:
+#     def __init__(self, rovid_nev, ertek, ideig_ertek=0, ideig_mod=0):
+#         self.rovid_nev = rovid_nev
+#         try:
+#             self.ertek = int(ertek)
+#         except ValueError:
+#             self.ertek = 'Nincs'
+#         self.ideiglenes_ertek = ideig_ertek or 0
+#         self.ideiglenes_modosito = ideig_mod or 0
+#     @property
+#     def modosito(self):
+#         try:
+#             return math.floor((self.ertek - 10 ) / 2)
+#         except TypeError:
+#             return 0
+
+#     def __str__(self):
+#         return '{} értéke {}, módosító: {}'.format(self.rovid_nev, self.ertek, self.modosito)
+
+
+# class Eletero(object):
+#     def __init__(self, **kwargs):
+#         self.dobas = Dobas.Dobas(kwargs['dobas'])
+#         self.eletpont = kwargs['eletpont']
+
+
+# class Vf:
+#     def __init__(self, meret_mod, tul_mod, term_mod):
+#         self.meret_mod = int(meret_mod) if meret_mod else 0
+#         self.tul_mod = int(tul_mod) if tul_mod else 0
+#         self.term_mod = int(term_mod) if term_mod else 0
+
+#     @property
+#     def osszes(self):
+#         return 10 + self.meret_mod + self.tul_mod + self.term_mod
+
+#     def __str__(self):
+#         return 'VF:= {}, ({}, {}, {})'.format(self.osszes, self.meret_mod, self.tul_mod, self.term_mod)
+
+# class Mento:
+#     def __init__(self, rovid_nev, pont):
+#         self.rovid_nev = rovid_nev
+#         self.pont = pont
+#         self.nev = MENTO_NEVEK[self.rovid_nev]
+#         self.varazslat_modosito = 0
+#         self.kieg_modosito = 0
+#         self.ideiglenes_modosito = 0
+#         self.felteteles_modosito = 0
+
+#     def __str__(self):
+#         return '{} mentő értéke: {}'.format(self.nev, self.pont)
+
+
+# Valtozat = namedtuple('Valtozat', ['min', 'max', 'meret'])
+# Fejlesztes = namedtuple('Fejlesztes', ['leggyengebb_valtozat', 'legerosebb_valtozat'])
+
+
+# class Kezdemenyezes:
+#     def __init__(self, modosito, eredet):
+#         self.modosito = int(modosito)
+#         self.eredet = eredet
+
+#     def __str__(self):
+#         return '{} ({})'.format(self.modosito, self.eredet)
+
+
+# class Tamadas:
+#     def __init__(self, szam, nev, bonusz, forma):
+#         self.szam = int(szam) if szam else 1
+#         self.nev = nev
+#         self.bonusz = bonusz
+#         self.forma = forma
+
+#     def __str__(self):
+#         return '{} {} + {} {}'.format(
+#             self.szam,
+#             self.nev,
+#             self.bonusz,
+#             self.forma)
+
+
+# class Sebzes:
+#     def __init__(self, tamadas_nev, dobas, kulonleges):
+#         self.tamadas_nev = tamadas_nev
+#         self.dobas = dobas
+#         self.kulonleges = kulonleges
+
+
+# class Kepesseg(object):
+#     def __init__(self, nev):
+#         self.nev = nev
+# class KulonlegesKepesseg(Kepesseg):
+#     pass
+
+
+# class Jartassag(object):
+#     def __init__(self, nev, pont):
+
+#         self.nev = nev
+#         self.pont = pont
+
+
+# class OldalEleres(object):
+#     def __init__(self, szelesseg, hosszusag, tav):
+#         pass
+#         self.szelesseg = szelesseg
+#         self.hosszusag = hosszusag
+#         self.tav = tav
+
+
+
+def advance_creature(new_level, **monster):
+
+    plus_hit_dice = new_level - int(monster["hitDice"]["numOfHitDice"])
+
+    def count_skill_points():
+        intelligence_score = int(monster["abilities"][3]["score"])
+        if intelligence_score == 0 or not intelligence_score:
             return 0
 
-    def __str__(self):
-        return '{} értéke {}, módosító: {}'.format(self.rovid_nev, self.ertek, self.modosito)
+        intelligence_modifier = int(monster["abilities"][3]["modifier"])
+        improvement_collection =  dnd_db["improvement"]
+        lookup = improvement_collection.find_one({"type" : monster["type"]})
+        type_skill_points = int(lookup["skillPoints"])
+        if type_skill_points + intelligence_modifier <= 0:
+            return plus_hit_dice
+        else:
+            return(intelligence_modifier + type_skill_points) * plus_hit_dice
 
+    def grant_feats():
+        return math.floor(plus_hit_dice / 3)
 
-class Eletero(object):
-    def __init__(self, **kwargs):
-        self.dobas = Dobas.Dobas(kwargs['dobas'])
-        self.eletpont = kwargs['eletpont']
-
-        # self.alap_allokepesseg_mento = alap_allokepesseg_mento
-        # self.ideig_mod = 0
-    #
-    # @property
-    # def dobas(self):
-    #     return self.__dobas
-    #
-    # @dobas.setter
-    # def dobas(self, uj):
-    #     self.__dobas = uj
-    #
-    # @property
-    # def szorny_szintje(self):
-    #     return self.__dobas.kocka_db
-    #
-    # @szorny_szintje.setter
-    # def szorny_szintje(self, szint):
-    #     self.__szorny_szintje = szint
-    #
-    # @property
-    # def eletpont(self):
-    #     return self.__eletpont
-    #
-    # @eletpont.setter
-    # def eletpont(self, bonusz):
-    #     self.__eletpont += bonusz
-
-
-class Vf:
-    def __init__(self, meret_mod, tul_mod, term_mod):
-        self.meret_mod = int(meret_mod) if meret_mod else 0
-        self.tul_mod = int(tul_mod) if tul_mod else 0
-        self.term_mod = int(term_mod) if term_mod else 0
-
-    @property
-    def osszes(self):
-        return 10 + self.meret_mod + self.tul_mod + self.term_mod
-
-    def __str__(self):
-        return 'VF:= {}, ({}, {}, {})'.format(self.osszes, self.meret_mod, self.tul_mod, self.term_mod)
-
-class Mento:
-    def __init__(self, rovid_nev, pont):
-        self.rovid_nev = rovid_nev
-        self.pont = pont
-        self.nev = MENTO_NEVEK[self.rovid_nev]
-        self.varazslat_modosito = 0
-        self.kieg_modosito = 0
-        self.ideiglenes_modosito = 0
-        self.felteteles_modosito = 0
-
-    def __str__(self):
-        return '{} mentő értéke: {}'.format(self.nev, self.pont)
-
-
-Valtozat = namedtuple('Valtozat', ['min', 'max', 'meret'])
-Fejlesztes = namedtuple('Fejlesztes', ['leggyengebb_valtozat', 'legerosebb_valtozat'])
-
-
-class Kezdemenyezes:
-    def __init__(self, modosito, eredet):
-        self.modosito = int(modosito)
-        self.eredet = eredet
-
-    def __str__(self):
-        return '{} ({})'.format(self.modosito, self.eredet)
-
-
-class Tamadas:
-    def __init__(self, szam, nev, bonusz, forma):
-        self.szam = int(szam) if szam else 1
-        self.nev = nev
-        self.bonusz = bonusz
-        self.forma = forma
-
-    def __str__(self):
-        return '{} {} + {} {}'.format(
-            self.szam,
-            self.nev,
-            self.bonusz,
-            self.forma)
-
-
-class Sebzes:
-    def __init__(self, tamadas_nev, dobas, kulonleges):
-        self.tamadas_nev = tamadas_nev
-        self.dobas = dobas
-        self.kulonleges = kulonleges
-
-
-class Kepesseg(object):
-    def __init__(self, nev):
-        self.nev = nev
-class KulonlegesKepesseg(Kepesseg):
-    pass
-
-
-class Jartassag(object):
-    def __init__(self, nev, pont):
-
-        self.nev = nev
-        self.pont = pont
-
-
-class OldalEleres(object):
-    def __init__(self, szelesseg, hosszusag, tav):
+    def update_hit_dice():
+        roll = Dobas.dobj("4d8+44")
+        monster.update({"hitPoints" : roll})
         pass
-        self.szelesseg = szelesseg
-        self.hosszusag = hosszusag
-        self.tav = tav
+
+    def check_size_and_update():
+        pass
 
 
-talalat = keress('szornyek.csv', 'nev', 'Aboleth')
-
-def tisztit(**sor):
-
-    def olvass(regkif, szoveg):
-        olvasas = re.compile(regkif)
-        talalatok = olvasas.search(szoveg)
-        return talalatok.groups()
-
-    def listaz(regex, kulcs):
-
-        return list(
-            i.groupdict() for i in re.finditer(
-                regex,
-                sor[kulcs]
-                )
-            )
-
-    def szotaraz(regex, kulcs):
-        return re.match(regex, sor[kulcs]).groupdict()
-
-    def tordel(kulcs, kar):
-        return list(
-            str.capitalize(i) for i in sor[kulcs].split(kar)
-            )
-    # self.eletero = Eletero(
-    #     # *olvass(REGKIF_ELETERO, kwargs['eletero_dobas']),
-    #     self.tulajdonsagok[2].ertek,
-    #     **re.search(REGKIF_ELETERO, kwargs['eletero_dobas']).groupdict(),
-    #     )
-    token = {}
-    token['nev'] = str.strip(sor['nev'])
-    token['meret'] = str.strip(sor['meret'])
-    token['tipus'] = str.strip(sor['tipus'])
-    token['vf'] = Vf(**szotaraz(REGKIF_VF, 'vf'))
-    token['tamadasok'] = listaz(REGKIF_TAMADAS, 'tamadasok')
-    token['tipus_modosito'] = str.capitalize(sor['tipus_modosito'])
-    token['kezdemenyezes'] = listaz(REGKIF_KEZDEMENYEZES, 'kezdemenyezes')
-    token['mentok'] = list(
-        Mento(**m) for m in listaz(REGKIF_MENTOK, 'mentok')
-    )
-    token['eletero_dobas'] = szotaraz(REGKIF_ELETERO, 'eletero_dobas')
-    token['eletpont'] = int(token['eletero_dobas']['eletpont'])
-    token['szint'] = Dobas.Dobas(**Dobas.dobas_tisztits(token['eletero_dobas']['dobas'])).db_kocka
-    token['jartassagok'] = listaz(REGKIF_MENTOK, 'jartassagok')
-    token['kepessegek'] = tordel('kepessegek', ', ')
-    token['kihivasi_ertek'] = int(sor['kihivasi_ertek'])
-    token['kulonleges_tamadasok'] = tordel('kulonleges_tamadasok', ', ')
-    token['kulonleges_kepessegek'] = tordel('kulonleges_kepessegek', ', ')
-    token['oldal_eleres'] = szotaraz(REGKIF_OLDAL_ELERES, 'oldal_eleres')
-    token['tamadasok'] = listaz(REGKIF_TAMADAS, 'tamadasok')
-    token['tulajdonsagok'] = list(
-        Tulajdonsag(**t) for t in listaz(REGKIF_TULAJDONSAGOK, 'tulajdonsagok')
-    )
-    # Valtozat = namedtuple('Valtozat', ['min', 'max', 'meret'])
-    # Fejlesztes = namedtuple('Fejlesztes', ['leggyengebb_valtozat', 'legerosebb_valtozat'])
-
-    token['fejlesztes'] = listaz(REGKIF_FEJLESZTES, 'fejlesztes')
-
-        # Valtozat(*re.findall(REGKIF_FEJLESZTES, sor['fejlesztes'])[0]),
-        # Valtozat(*re.findall(REGKIF_FEJLESZTES, sor['fejlesztes'])[1])
-
-    return token
-
-leny = tisztit(**talalat)
-leny['hord_fegyvert'] = False
-leny['van_pajzsa'] = False
-leny['van_vertezete'] = False
+    extraSkillPoints = count_skill_points()
+    extraFeats = grant_feats()
+    update_hit_dice()
+    check_size_and_update()
+    # this.countSkillPoints(levelDiff);
+    # this.grantFeats(levelDiff);
+    # this.updateHitDice(newLevel, levelDiff);
+    # this.checkSizeAndUpdate(newLevel);  
 
 
-def fejlessz(szorny):
+monster = monster_collection.find_one({"name" : "Aboleth"})
 
-    def noveld_eletpontot(szorny):
-        elet_kocka = keress('fejlesztes.csv', 'tipus', szorny['tipus'])['eletero_dobas']        
-        szorny['eletpont'] += Dobas.dobj(elet_kocka)
+for ability in monster["abilities"]:
+    ability.update({"modifier" : math.floor((ability["score"] - 10) / 2)})
 
-    def noveld_szintet(szorny):
-        szorny['szint'] += 1
+monster.update({"hitPoints" : monster["hitDice"]["avgHitPoints"]})
+advance_creature(14,**monster)
+print(monster)
 
-    print(szorny['oldal_eleres'])
-    print(szorny['tamadasok'])
-    print(szorny['tulajdonsagok'])
-    print(szorny['tamadasok'])
-    print(szorny['eletero_dobas'])
-    print(szorny['eletpont'])
-    noveld_eletpontot(szorny)
-    print(szorny['szint'])
-    noveld_szintet(szorny)
-    print(szorny['eletpont'])
-    print(szorny['szint'])
+# talalat = keress('szornyek.csv', 'nev', 'Aboleth')
 
-fejlessz(leny)
+# def tisztit(**sor):
+
+#     def olvass(regkif, szoveg):
+#         olvasas = re.compile(regkif)
+#         talalatok = olvasas.search(szoveg)
+#         return talalatok.groups()
+
+#     def listaz(regex, kulcs):
+
+#         return list(
+#             i.groupdict() for i in re.finditer(
+#                 regex,
+#                 sor[kulcs]
+#                 )
+#             )
+
+#     def szotaraz(regex, kulcs):
+#         return re.match(regex, sor[kulcs]).groupdict()
+
+#     def tordel(kulcs, kar):
+#         return list(
+#             str.capitalize(i) for i in sor[kulcs].split(kar)
+#             )
+#     # self.eletero = Eletero(
+#     #     # *olvass(REGKIF_ELETERO, kwargs['eletero_dobas']),
+#     #     self.tulajdonsagok[2].ertek,
+#     #     **re.search(REGKIF_ELETERO, kwargs['eletero_dobas']).groupdict(),
+#     #     )
+#     token = {}
+#     token['nev'] = str.strip(sor['nev'])
+#     token['meret'] = str.strip(sor['meret'])
+#     token['tipus'] = str.strip(sor['tipus'])
+#     token['vf'] = Vf(**szotaraz(REGKIF_VF, 'vf'))
+#     token['tamadasok'] = listaz(REGKIF_TAMADAS, 'tamadasok')
+#     token['tipus_modosito'] = str.capitalize(sor['tipus_modosito'])
+#     token['kezdemenyezes'] = listaz(REGKIF_KEZDEMENYEZES, 'kezdemenyezes')
+#     token['mentok'] = list(
+#         Mento(**m) for m in listaz(REGKIF_MENTOK, 'mentok')
+#     )
+#     token['eletero_dobas'] = szotaraz(REGKIF_ELETERO, 'eletero_dobas')
+#     token['eletpont'] = int(token['eletero_dobas']['eletpont'])
+#     token['szint'] = Dobas.Dobas(**Dobas.dobas_tisztits(token['eletero_dobas']['dobas'])).db_kocka
+#     token['jartassagok'] = listaz(REGKIF_MENTOK, 'jartassagok')
+#     token['kepessegek'] = tordel('kepessegek', ', ')
+#     token['kihivasi_ertek'] = int(sor['kihivasi_ertek'])
+#     token['kulonleges_tamadasok'] = tordel('kulonleges_tamadasok', ', ')
+#     token['kulonleges_kepessegek'] = tordel('kulonleges_kepessegek', ', ')
+#     token['oldal_eleres'] = szotaraz(REGKIF_OLDAL_ELERES, 'oldal_eleres')
+#     token['tamadasok'] = listaz(REGKIF_TAMADAS, 'tamadasok')
+#     token['tulajdonsagok'] = list(
+#         Tulajdonsag(**t) for t in listaz(REGKIF_TULAJDONSAGOK, 'tulajdonsagok')
+#     )
+#     # Valtozat = namedtuple('Valtozat', ['min', 'max', 'meret'])
+#     # Fejlesztes = namedtuple('Fejlesztes', ['leggyengebb_valtozat', 'legerosebb_valtozat'])
+
+#     token['fejlesztes'] = listaz(REGKIF_FEJLESZTES, 'fejlesztes')
+
+#         # Valtozat(*re.findall(REGKIF_FEJLESZTES, sor['fejlesztes'])[0]),
+#         # Valtozat(*re.findall(REGKIF_FEJLESZTES, sor['fejlesztes'])[1])
+
+#     return token
+
+# leny = tisztit(**talalat)
+# leny['hord_fegyvert'] = False
+# leny['van_pajzsa'] = False
+# leny['van_vertezete'] = False
+
+
+# def fejlessz(szorny):
+
+#     def noveld_eletpontot(szorny):
+#         elet_kocka = keress('fejlesztes.csv', 'tipus', szorny['tipus'])['eletero_dobas']        
+#         szorny['eletpont'] += Dobas.dobj(elet_kocka)
+
+#     def noveld_szintet(szorny):
+#         szorny['szint'] += 1
+
+#     print(szorny['oldal_eleres'])
+#     print(szorny['tamadasok'])
+#     print(szorny['tulajdonsagok'])
+#     print(szorny['tamadasok'])
+#     print(szorny['eletero_dobas'])
+#     print(szorny['eletpont'])
+#     noveld_eletpontot(szorny)
+#     print(szorny['szint'])
+#     noveld_szintet(szorny)
+#     print(szorny['eletpont'])
+#     print(szorny['szint'])
+
+# fejlessz(leny)
 # def toltds_be(esemeny):
 #     # mezo_tul.config(state = 'enabled')
 #     for gomb in keret_tulajdonsagok.winfo_children():
