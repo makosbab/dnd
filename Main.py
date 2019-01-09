@@ -3,9 +3,6 @@
 import math
 import Dobas
 import pymongo
-
-# from tkinter import Tk, RIGHT, BOTH, RAISED
-# from tkinter.ttk import Frame, Button, Style
 mongo_client = pymongo.MongoClient("mongodb://localhost:27017/")
 db = mongo_client["testdb"]
 monster_collection = db["monsters"]
@@ -40,6 +37,8 @@ def advance_creature(new_level, **monster):
     plus_hit_dice = new_level - int(monster["hitDice"]["numOfHitDice"])
     impr_coll =  db["improvement"]
     size_stats_coll =  db["statschangebysize"]
+    hide_mod_coll = db["hidingmodifiers"]
+    ooze_sizes_coll = db["oozesizes"]
     impr = impr_coll.find_one({"type" : monster["type"]})
 
     def count_skill_points():
@@ -74,11 +73,20 @@ def advance_creature(new_level, **monster):
         monster["hitPoints"] = roll
 
     def check_size_changed():
+        print(monster)
         lookup = next(v for v in monster['advancement'] if new_level in range(v['hitDiceMin'],v['hitDiceMax']))
+        # ha a méret megváltozott
         if lookup['version'] is not monster["size"]:
             monster["size"] = lookup["version"]
             size_stats = size_stats_coll.find_one({"newSize" : monster["size"]})
-            print(size_stats)
+            if monster["type"] == "Ooze":
+                hp_bonus = ooze_sizes_coll.find_one({"oozeSize" : monster["size"]})["hpBonus"]
+
+            monster["abilities"][0]["score"] += int(size_stats["str"])
+            if size_stats["dex"]:
+                monster["abilities"][1]["score"] += int(size_stats["dex"])
+            monster["abilities"][2]["score"] += int(size_stats["con"])
+            monster["armorClass"]["class"] += int(size_stats["acAndAttack"])
             # this.monster.abilities[0].score += lookup.str;
             # this.monster.abilities[1].score += lookup.dex;
             # this.monster.abilities[2].score += lookup.con;
@@ -94,9 +102,9 @@ def advance_creature(new_level, **monster):
     print(extra_feats)
     update_hit_dice()
     check_size_changed()
-
     print(monster)
     return monster
+
 
 monster = monster_collection.find_one({"name" : "Aboleth"})
 
