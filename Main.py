@@ -24,13 +24,41 @@ REGKIF_TAMADAS = r'(?P<szam>\d+) (?P<nev>[\w\s]+) (?P<bonusz>\+\d+) (?P<forma>\w
 REGKIF_OLDAL_ELERES = r'(?P<szelesseg>\d+) x (?P<hosszusag>\d+) \/ (?P<tav>.+)'
 REGKIF_FEJLESZTES = r'(?P<min>\d+)-(?P<max>\d+) ÉK \((?P<valtozat>\S+)\)'
 
-class Monster():
+class Attributes():
 
     def __init__(self, entries):
+
         for key, value in entries.items():
-            setattr(self, key, value)
-        
-        print(self.hitDice["numOfHitDice"])
+            setattr(self, key, self._wrap_value(value))
+
+    def _wrap_value(self, value):
+        if isinstance(value, list):
+            return list(self._wrap_value(v) for v in value)
+        else:
+            return Attributes(value) if isinstance(value, dict) else value   
+
+def get_modifier(score):
+    return math.floor(score - 10 / 2)
+
+class Monster():
+    def __init__(self, attribs):
+        self.attributes = attribs
+
+    @property
+    def ability(self):
+        return self.attributes.ability
+    
+    @ability.setter
+    def ability(self):
+        self.attributes.ability[0].modifier = 77
+
+
+a = Attributes(m)
+monst = Monster(a)
+print(monst.attributes.abilities[0])
+
+class AdvancerSystem():
+    pass
 
 def advance_creature(new_level, **monster):
 
@@ -102,7 +130,7 @@ def advance_creature(new_level, **monster):
     print(extra_feats)
     update_hit_dice()
     check_size_changed()
-    print(monster)
+    # print(monster)
     return monster
 
 
