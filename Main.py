@@ -5,7 +5,7 @@ import Dobas
 import pymongo
 import json
 mongo_client = pymongo.MongoClient("mongodb://localhost:27017/")
-db = mongo_client["testdb"]
+db = mongo_client["local"]
 monster_collection = db["monsters"]
 
 m = monster_collection.find_one({"name" : "Aboleth"})
@@ -27,10 +27,6 @@ REGKIF_FEJLESZTES = r'(?P<min>\d+)-(?P<max>\d+) ÉK \((?P<valtozat>\S+)\)'
 
 class AdvancerSystem():
     pass
-
-
-class Ability():
-    pass
     
 class Attributes():
 
@@ -45,26 +41,50 @@ class Attributes():
         else:
             return Attributes(value) if isinstance(value, dict) else value   
 
-    @property
-    def modifier(self):
-        return 2
-
-def abmod(score):
-    return math.floor(score - 10 / 2)
+def get_attribute_modifier(score):
+        return math.floor((score - 10) / 2)
 
 class Character():
     def __init__(self, attributes):
-        self.__dict__ = attributes
-        self.name.x 
+        self.__dict__ = attributes 
 
     @property
-    def ability(self):
-        return self.abilities
+    def strMod(self):
+        return get_attribute_modifier(self.str)
 
-char = Character(m)
-def advance_creature(new_level, **monster):
+    @property
+    def dexMod(self):
+        return get_attribute_modifier(self.dex)
 
-    plus_hit_dice = new_level - int(monster["hitDice"]["numOfHitDice"])
+    @property
+    def conMod(self):
+        return get_attribute_modifier(self.con)
+
+    @property
+    def wisMod(self):
+        return get_attribute_modifier(self.wis)
+
+    @property
+    def charMod(self):
+        return get_attribute_modifier(self.char)
+
+    @property
+    def intMod(self):
+        return get_attribute_modifier(self.int)
+
+    @property
+    def baseAttackMod(self):
+        pass
+
+    @property
+    def attackModMelee(self):
+        attack_size_mod = monster_collection.find_one({"size" : self.size})["AttackAndAcMod"]
+        return self.baseAttackMod + self.strMod + attack_size_mod
+    # monster.attackModifierMelee = monster.baseAttackModifier() + monster.abilities[0].modifier + sizeModifiers[5].sizeModifier;
+
+def advance_creature(new_level, monster):
+
+    plus_hit_dice = new_level - int(monster.hitDice["count"])
     impr_coll =  db["improvement"]
     size_stats_coll =  db["statschangebysize"]
     hide_mod_coll = db["hidingmodifiers"]
@@ -125,21 +145,21 @@ def advance_creature(new_level, **monster):
     def change_stats_by_size():
         pass
 
-
-    #extra_skill_points = count_skill_points()
     extra_feats = grant_feats()
-    #print(extra_skill_points)
     print(extra_feats)
     update_hit_dice()
     check_size_changed()
-    # print(monster)
     return monster
 
+def main():
 
-monster = monster_collection.find_one({"name" : "Aboleth"})
+    char = Character(m)
+    print(char.strMod)
+    monster = monster_collection.find_one({"name" : "Aboleth"})
+    monster.update({"hitPoints" : monster["hitDice"]["avgHitPoints"]})
+    advance_creature(19, char)
+if __name__ == "__main__":
+    main()
 
-for ability in monster["abilities"]:
-    ability.update({"modifier" : math.floor((ability["score"] - 10) / 2)})
 
-monster.update({"hitPoints" : monster["hitDice"]["avgHitPoints"]})
-advance_creature(19, **monster)
+
