@@ -3,12 +3,17 @@
 import math
 import Dobas
 import pymongo
-import json
+import re
+import inflection
 mongo_client = pymongo.MongoClient("mongodb://localhost:27017/")
-db = mongo_client["local"]
+db = mongo_client["testdb"]
 monster_collection = db["monsters"]
 
-m = monster_collection.find_one({"name" : "Aboleth"})
+
+
+camel_pat = re.compile(r'([A-Z])')
+def camel_to_underscore(name):
+    return camel_pat.sub(lambda x: '_' + x.group(1).lower(), name)
 
 REGKIF_KTAM = r'(\w+)'
 REG_TAMADAS = r'(\w+) ([\+|\-]\d+) kh.'
@@ -26,138 +31,144 @@ REGKIF_OLDAL_ELERES = r'(?P<szelesseg>\d+) x (?P<hosszusag>\d+) \/ (?P<tav>.+)'
 REGKIF_FEJLESZTES = r'(?P<min>\d+)-(?P<max>\d+) ÉK \((?P<valtozat>\S+)\)'
 
 class AdvancerSystem():
-    pass
     
-class Attributes():
+    COLLECTION_IMPROV =  db["improvement"]
+    COLLECTION_STATS_BY_SIZE =  db["statschangebysize"]
+    COLLECTION_HIDE_MOD = db["hidingmodifiers"]
+    COLLECTION_OOZE = db["oozesizes"]
 
-    def __init__(self, entries):
+    def __init__(self):
+        self.char = None
+        self.impr_by_type = None
+        self.to_level = 0
+        self.plus_hd = 0
 
-        for key, value in entries.items():
-            setattr(self, key, self._wrap_value(value))
-        
-    def _wrap_value(self, value):
-        if isinstance(value, list):
-            return list(self._wrap_value(v) for v in value)
-        else:
-            return Attributes(value) if isinstance(value, dict) else value   
-
-def get_attribute_modifier(score):
-        return math.floor((score - 10) / 2)
-
-class Character():
-    def __init__(self, attributes):
-        self.__dict__ = attributes 
+    def load_character(self, char):
+        self.char = char
+        self.impr_by_type = self.COLLECTION_IMPROV.find_one({"type" : self.char.type})
+        print(self.impr_by_type)
+    
 
     @property
-    def strMod(self):
-        return get_attribute_modifier(self.str)
-
-    @property
-    def dexMod(self):
-        return get_attribute_modifier(self.dex)
-
-    @property
-    def conMod(self):
-        return get_attribute_modifier(self.con)
-
-    @property
-    def wisMod(self):
-        return get_attribute_modifier(self.wis)
-
-    @property
-    def charMod(self):
-        return get_attribute_modifier(self.char)
-
-    @property
-    def intMod(self):
-        return get_attribute_modifier(self.int)
-
-    @property
-    def baseAttackMod(self):
-        pass
-
-    @property
-    def attackModMelee(self):
-        attack_size_mod = monster_collection.find_one({"size" : self.size})["AttackAndAcMod"]
-        return self.baseAttackMod + self.strMod + attack_size_mod
-    # monster.attackModifierMelee = monster.baseAttackModifier() + monster.abilities[0].modifier + sizeModifiers[5].sizeModifier;
-
-def advance_creature(new_level, monster):
-
-    plus_hit_dice = new_level - int(monster.hitDice["count"])
-    impr_coll =  db["improvement"]
-    size_stats_coll =  db["statschangebysize"]
-    hide_mod_coll = db["hidingmodifiers"]
-    ooze_sizes_coll = db["oozesizes"]
-    impr = impr_coll.find_one({"type" : monster["type"]})
-
-    def count_skill_points():
-
-        intelligence_score = int(monster["abilities"][3]["score"])
-        if intelligence_score == 0 or not intelligence_score:
+    def new_skill_points(self):
+        if self.char.int_mod == 0 or not self.char.int_mod:
             return 0
-           
-        skill_point = impr["extraSkillPoints"]
-        points_per_hd = skill_point["base"]
-        
-        if skill_point["modifier"]:
-            points_per_hd += int(monster["abilities"][3]["modifier"])
- 
-        return points_per_hd * plus_hit_dice if points_per_hd > 0 else plus_hit_dice
+            # return self.impr_by_type["extraSkillPoints"]["base"] * self.plus_hd if self.impr_by_type["base"] > 0 else plus_hd
+        return self.impr_by_type["extraSkillPoints"]["base"] * self.plus_hd
 
-    def update_skills():
-        pass
+    @property
+    def new_feats(self):
 
-    def grant_feats():
-        feats = impr["extraFeats"]
+        feats = self.impr_by_type["extraFeats"]
         if feats is None:
             return 0
         if(isinstance(feats, str)):
-            monster["feats"].append(feats)
+            self.char.feats.append(feats)
             return 0
 
-        return math.floor(feats * plus_hit_dice)
+        return math.floor(feats * self.plus_hd)
 
-    def update_hit_dice():
+    def advance_character(self, to_level):
+
+        self.plus_hd = to_level - int(self.char.hit_dice["count"])
+        self.update_hit_dice()
+        self.check_size_changed()
+
+            
+    def update_skills():
+        pass
+
+
+    def update_hit_dice(self):
         roll = Dobas.dobj("4d8+44")
-        monster["hitPoints"] = roll
+        self.char.hit_points = roll
 
-    def check_size_changed():
-        print(monster)
-        lookup = next(v for v in monster['advancement'] if new_level in range(v['hitDiceMin'],v['hitDiceMax']))
+    def check_size_changed(self):
+        print(self.char.advancement)
+        lookup = next(v for v in self.char.advancement if self.to_level in range(v['rangeMin'],v['rangeMax']))
         # ha a méret megváltozott
-        if lookup['version'] is not monster["size"]:
-            monster["size"] = lookup["version"]
-            size_stats = size_stats_coll.find_one({"newSize" : monster["size"]})
-            if monster["type"] == "Ooze":
-                hp_bonus = ooze_sizes_coll.find_one({"oozeSize" : monster["size"]})["hpBonus"]
+        if lookup['version'] is not self.char.size:
+            self.char.size = lookup["version"]
+            size_stats = self.COLLECTION_STATS_BY_SIZE.find_one({"newSize" : self.char.size})
+            if self.char.type == "Ooze":
+                hp_bonus = self.COLLECTION_OOZE.find_one({"oozeSize" : self.char.size})["hpBonus"]
 
-            monster["abilities"][0]["score"] += int(size_stats["str"])
+            self.char.str += int(size_stats["str"])
             if size_stats["dex"]:
-                monster["abilities"][1]["score"] += int(size_stats["dex"])
-            monster["abilities"][2]["score"] += int(size_stats["con"])
-            monster["armorClass"]["class"] += int(size_stats["acAndAttack"])
-            # this.monster.abilities[0].score += lookup.str;
-            # this.monster.abilities[1].score += lookup.dex;
-            # this.monster.abilities[2].score += lookup.con;
-            # this.monster.armorClass.class += lookup.acAndAttack;
+                self.char.dex += int(size_stats["dex"])
+            self.char.con += int(size_stats["con"])
+            self.char.armor_class["class"] += int(size_stats["acAndAttack"])
+            # this.char.abilities[0].score += lookup.str;
+            # this.char.abilities[1].score += lookup.dex;
+            # this.char.abilities[2].score += lookup.con;
+            # this.char.armorClass.class += lookup.acAndAttack;
 
     def change_stats_by_size():
         pass
 
-    extra_feats = grant_feats()
-    print(extra_feats)
-    update_hit_dice()
-    check_size_changed()
-    return monster
+        # extra_feats = grant_feats()
+        # print(extra_feats)
+        # update_hit_dice()
+        # check_size_changed()
+        
+
+    
+def set_attribute_modifier(score):
+    return math.floor((score - 10) / 2)
+
+class Character():
+    def __init__(self, attributes):
+
+        self.__dict__ = {inflection.underscore(k) : v for k, v in attributes.items()}
+        # alphabet =  {k.lower(): v for k, v in alphabet.items()}
+
+    @property
+    def str_mod(self):
+        print(self.__dict__)
+        return set_attribute_modifier(self.str)
+
+    @property
+    def dex_mod(self):
+        return set_attribute_modifier(self.dex)
+
+    @property
+    def con_mod(self):
+        return set_attribute_modifier(self.con)
+
+    @property
+    def wis_mod(self):
+        return set_attribute_modifier(self.wis)
+
+    @property
+    def char_mod(self):
+        return set_attribute_modifier(self.char)
+
+    @property
+    def int_mod(self):
+        return set_attribute_modifier(self.int)
+
+    @property
+    def base_att_mod(self):
+        pass
+
+    @property
+    def melee_att_mod(self):
+        attack_size_mod = monster_collection.find_one({"size" : self.size})["AttackAndAcMod"]
+        return self.base_att_mod + self.str_mod + attack_size_mod
+
+    @property
+    def ranged_att_mod(self):
+        attack_size_mod = monster_collection.find_one({"size" : self.size})["AttackAndAcMod"]
+        return self.base_att_mod + self.dex_mod + attack_size_mod
+    # monster.attackModifierMelee = monster.baseAttackModifier() + monster.abilities[0].modifier + sizeModifiers[5].sizeModifier;
+
 
 def main():
-
+    m = monster_collection.find_one({"name" : "Aboleth"})
     char = Character(m)
-    print(char.strMod)
-    monster = monster_collection.find_one({"name" : "Aboleth"})
-    monster.update({"hitPoints" : monster["hitDice"]["avgHitPoints"]})
-    advance_creature(19, char)
+    ad = AdvancerSystem()
+    ad.load_character(char)
+    ad.advance_character(19)
 if __name__ == "__main__":
     main()
 
