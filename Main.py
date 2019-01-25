@@ -5,6 +5,7 @@ import Dobas
 import pymongo
 import re
 import inflection
+
 mongo_client = pymongo.MongoClient("mongodb://localhost:27017/")
 db = mongo_client["testdb"]
 monster_collection = db["monsters"]
@@ -19,16 +20,16 @@ REGKIF_KTAM = r'(\w+)'
 REG_TAMADAS = r'(\w+) ([\+|\-]\d+) kh.'
 REGKIF_DOBAS = r'(\d+)d(\d{2,3|4|6|8|10|20|100})(x(\d)+)?((\+|\-)\d+)'
 
-REGKIF_SEBZES = r'(\w+)+ ' + REGKIF_DOBAS
-REGKIF_JARTASSAGOK = r'(?P<nev>\w+)+ (?P<pont>[\+|\-]\d+)'
-REGKIF_MENTOK = r'(?P<rovid_nev>\w+)+ (?P<pont>[\+|\-]\d+)'
-REGKIF_TULAJDONSAGOK = r'(?P<rovid_nev>\w+)+ (?P<ertek>\d+|\-)'
-REGKIF_VF = r'(\d+) \((?P<meret_mod>\+|\-\d+) termet, (?P<tul_mod>\+\d+) Ügy, (?P<term_mod>\+\d+) természetes\)'
-REGKIF_ELETERO = r"(?P<dobas>\d?d\d+\+\d+) (?:\((?P<eletpont>\d+) ép\))"
-REGKIF_KEZDEMENYEZES = r'(?P<modosito>\+\d+) \((?P<eredet>\w+)\)'
-REGKIF_TAMADAS = r'(?P<szam>\d+) (?P<nev>[\w\s]+) (?P<bonusz>\+\d+) (?P<forma>\w+.)'
-REGKIF_OLDAL_ELERES = r'(?P<szelesseg>\d+) x (?P<hosszusag>\d+) \/ (?P<tav>.+)'
-REGKIF_FEJLESZTES = r'(?P<min>\d+)-(?P<max>\d+) ÉK \((?P<valtozat>\S+)\)'
+# REGKIF_SEBZES = r'(\w+)+ ' + REGKIF_DOBAS
+# REGKIF_JARTASSAGOK = r'(?P<nev>\w+)+ (?P<pont>[\+|\-]\d+)'
+# REGKIF_MENTOK = r'(?P<rovid_nev>\w+)+ (?P<pont>[\+|\-]\d+)'
+# REGKIF_TULAJDONSAGOK = r'(?P<rovid_nev>\w+)+ (?P<ertek>\d+|\-)'
+# REGKIF_VF = r'(\d+) \((?P<meret_mod>\+|\-\d+) termet, (?P<tul_mod>\+\d+) Ügy, (?P<term_mod>\+\d+) természetes\)'
+# REGKIF_ELETERO = r"(?P<dobas>\d?d\d+\+\d+) (?:\((?P<eletpont>\d+) ép\))"
+# REGKIF_KEZDEMENYEZES = r'(?P<modosito>\+\d+) \((?P<eredet>\w+)\)'
+# REGKIF_TAMADAS = r'(?P<szam>\d+) (?P<nev>[\w\s]+) (?P<bonusz>\+\d+) (?P<forma>\w+.)'
+# REGKIF_OLDAL_ELERES = r'(?P<szelesseg>\d+) x (?P<hosszusag>\d+) \/ (?P<tav>.+)'
+# REGKIF_FEJLESZTES = r'(?P<min>\d+)-(?P<max>\d+) ÉK \((?P<valtozat>\S+)\)'
 
 class AdvancerSystem():
     
@@ -103,7 +104,7 @@ class AdvancerSystem():
             # this.char.abilities[2].score += lookup.con;
             # this.char.armorClass.class += lookup.acAndAttack;
 
-    def change_stats_by_size():
+    def change_stats_by_size(self):
         pass
 
         # extra_feats = grant_feats()
@@ -169,8 +170,7 @@ def main():
     ad = AdvancerSystem()
     ad.load_character(char)
     ad.advance_character(19)
+
+
 if __name__ == "__main__":
     main()
-
-
-
